@@ -17,8 +17,12 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
   return mounted ? (
     <>{children}</>
   ) : (
-    <div className="min-h-screen bg-[#2C3E50] flex items-center justify-center" suppressHydrationWarning>
-      <div className="text-white text-2xl" suppressHydrationWarning>Loading...</div>
+    <div className="min-h-screen bg-[#ECF0F1] flex items-center justify-center">
+      <div className="flex flex-col items-center space-y-4">
+        <div className="w-16 h-16 rounded-full bg-[#27AE60]/10 flex items-center justify-center animate-pulse">
+          <div className="w-8 h-8 rounded-full bg-[#27AE60]" />
+        </div>
+      </div>
     </div>
   );
 }
@@ -30,10 +34,10 @@ function ScrollButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="flex flex-col items-center animate-bounce cursor-pointer group mx-auto"
     >
-      <span className="text-gray-300 mb-2 group-hover:text-[#F39C12] transition-colors">
+      <span className="text-[#34495E] mb-2 group-hover:text-[#27AE60] transition-colors">
         Learn More
       </span>
-      <ChevronDown className="w-6 h-6 text-[#F39C12]" />
+      <ChevronDown className="w-6 h-6 text-[#27AE60]" />
     </button>
   );
 }
@@ -41,6 +45,11 @@ function ScrollButton({ onClick }: { onClick: () => void }) {
 export default function HomeContent() {
   const handleScroll = useCallback(() => {
     const element = document.getElementById('transform-section');
+    element?.scrollIntoView({ behavior: 'smooth' });
+  }, []);
+
+  const scrollToVideo = useCallback(() => {
+    const element = document.getElementById('video-section');
     element?.scrollIntoView({ behavior: 'smooth' });
   }, []);
 
@@ -83,11 +92,11 @@ export default function HomeContent() {
         </SignedIn>
 
         <SignedOut>
-          <nav className="bg-[#2C3E50]/95 backdrop-blur-sm fixed w-full z-50 p-4" suppressHydrationWarning>
-            <div className="container mx-auto flex justify-between items-center">
-              <h1 className="text-white text-2xl font-bold">Oratoria</h1>
+          <nav className="bg-white shadow-sm fixed w-full z-50" suppressHydrationWarning>
+            <div className="container mx-auto flex justify-between items-center h-16 px-4">
+              <h1 className="text-[#2C3E50] text-2xl font-bold">Oratoria</h1>
               <SignInButton mode="modal">
-                <button className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#27AE60]/90 transition-colors">
+                <button className="bg-[#27AE60] text-white px-5 py-1.5 rounded-lg hover:bg-[#27AE60]/90 transition-colors text-base font-semibold">
                   Sign In
                 </button>
               </SignInButton>
@@ -96,29 +105,49 @@ export default function HomeContent() {
 
           <main>
             {/* Hero Section */}
-            <section className="relative min-h-screen bg-gradient-to-br from-[#2C3E50] to-[#34495E] flex flex-col" suppressHydrationWarning>
-              {/* Background circles */}
-              <div className="absolute inset-0 opacity-20">
-                <div className="animate-pulse absolute top-20 left-20 w-64 h-64 rounded-full bg-[#27AE60]" />
-                <div className="animate-pulse absolute top-40 right-20 w-48 h-48 rounded-full bg-[#F39C12]" />
-                <div className="animate-pulse absolute bottom-20 left-1/3 w-56 h-56 rounded-full bg-[#27AE60]" />
+            <section className="relative min-h-screen bg-[#ECF0F1] pt-16 flex flex-col" suppressHydrationWarning>
+              {/* Background gradient circles */}
+              <div className="absolute inset-0">
+                <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-gradient-to-r from-[#27AE60]/10 to-[#27AE60]/5 blur-2xl" />
+                <div className="absolute top-40 right-20 w-48 h-48 rounded-full bg-gradient-to-r from-[#F39C12]/10 to-[#F39C12]/5 blur-2xl" />
+                <div className="absolute bottom-20 left-1/3 w-56 h-56 rounded-full bg-gradient-to-r from-[#27AE60]/10 to-[#27AE60]/5 blur-2xl" />
               </div>
               
               {/* Main content - centered vertically and horizontally */}
               <div className="flex-grow flex items-center">
                 <div className="container relative mx-auto px-4">
-                  <div className="max-w-4xl mx-auto text-center text-white">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight" suppressHydrationWarning>
-                      Master the Art of <span className="text-[#F39C12]">Conversation</span>
+                  <div className="max-w-5xl mx-auto text-center">
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-[#2C3E50]" suppressHydrationWarning>
+                      Master the Art of <span className="text-[#27AE60]">Conversation</span>
                     </h1>
-                    <p className="text-xl md:text-2xl mb-8 text-gray-300">
+                    <p className="text-xl md:text-2xl mb-12 text-[#34495E]">
                       Train like the ancient sophists, powered by modern AI
                     </p>
-                    <SignInButton mode="modal">
-                      <button className="bg-[#F39C12] text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#F39C12]/90 transition-all transform hover:scale-105 inline-flex items-center gap-2 shadow-lg">
-                        Start Your Journey <ArrowRight className="w-5 h-5" />
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
+                      <SignInButton mode="modal">
+                        <button className="w-full h-full bg-[#27AE60] text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#27AE60]/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg">
+                          <span>Start Your Journey</span>
+                          <span className="text-sm opacity-90">Sign up and try it yourself</span>
+                        </button>
+                      </SignInButton>
+                      
+                      <button 
+                        onClick={scrollToVideo}
+                        className="w-full h-full bg-[#F39C12] text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#F39C12]/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg"
+                      >
+                        <span>See Trailer</span>
+                        <span className="text-sm opacity-90">Watch our over-the-top AI-generated masterpiece</span>
                       </button>
-                    </SignInButton>
+
+                      <Link 
+                        href="https://github.com/wasil-dilawari/elevenlabs-hackathon"
+                        target="_blank"
+                        className="w-full h-full bg-[#34495E] text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#34495E]/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg"
+                      >
+                        <span>Technical Implementation</span>
+                        <span className="text-sm opacity-90">AKA how the hell did I make this in less than 30 hours?</span>
+                      </Link>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -130,7 +159,7 @@ export default function HomeContent() {
             </section>
 
             {/* Video Section */}
-            <section className="relative py-20 bg-white">
+            <section id="video-section" className="relative py-20 bg-white">
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto">
                   <VideoPlayer 
@@ -140,10 +169,10 @@ export default function HomeContent() {
                   />
                   <div className="text-center mt-8">
                     <h2 className="text-2xl md:text-3xl font-bold text-[#2C3E50] mb-4">
-                      See Oratoria in Action
+                      The Most Epic AI Training Video Ever Made
                     </h2>
                     <p className="text-[#34495E] text-lg">
-                      Watch how our AI-powered platform helps you master the art of conversation
+                      Watch this overly dramatic video. Fun fact: it was generated entirely by AI, the only thing I did was writing the script, editing, and logo design!
                     </p>
                   </div>
                 </div>
@@ -151,12 +180,12 @@ export default function HomeContent() {
             </section>
 
             {/* Transform Your Social Life Section */}
-            <section id="transform-section" className="py-20 bg-white">
+            <section id="transform-section" className="py-20 bg-[#ECF0F1]">
               <div className="container mx-auto px-4">
                 <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#2C3E50]">
                   Transform Your Social Life
                 </h2>
-                <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">
+                <p className="text-center text-[#34495E] mb-16 max-w-2xl mx-auto">
                   Master every social situation with confidence and authenticity
                 </p>
                 
@@ -220,48 +249,48 @@ export default function HomeContent() {
             </section>
 
             {/* Professional Practice Section */}
-            <section className="py-20 bg-[#2C3E50] text-white">
+            <section className="py-20 bg-white">
               <div className="container mx-auto px-4">
                 <div className="max-w-4xl mx-auto text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-bold mb-6">
+                  <h2 className="text-3xl md:text-4xl font-bold mb-6 text-[#2C3E50]">
                     Master Conversations Like a Professional
                   </h2>
-                  <p className="text-xl text-gray-300">
+                  <p className="text-xl text-[#34495E]">
                     Just like chess grandmasters or elite athletes, true mastery comes from deliberate practice, analysis, and structured learning
                   </p>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
-                  {/* Left side - Traditional Learning */}
-                  <div className="bg-[#34495E]/50 p-8 rounded-xl">
+                  {/* Traditional Approach Card */}
+                  <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                     <div className="flex items-center mb-6">
-                      <div className="p-3 rounded-lg bg-[#F39C12]/20">
+                      <div className="p-3 rounded-lg bg-[#F39C12]/10">
                         <Shield className="w-6 h-6 text-[#F39C12]" />
                       </div>
-                      <h3 className="text-xl font-semibold ml-4">
+                      <h3 className="text-xl font-semibold ml-4 text-[#2C3E50]">
                         Traditional Approach
                       </h3>
                     </div>
                     <ul className="space-y-4">
-                      <li className="flex items-start opacity-60">
+                      <li className="flex items-start text-[#34495E]/60">
                         <div className="mr-3 mt-1">
                           <div className="w-2 h-2 rounded-full bg-[#F39C12]" />
                         </div>
                         <span>Learning only from real interactions</span>
                       </li>
-                      <li className="flex items-start opacity-60">
+                      <li className="flex items-start text-[#34495E]/60">
                         <div className="mr-3 mt-1">
                           <div className="w-2 h-2 rounded-full bg-[#F39C12]" />
                         </div>
                         <span>No way to analyze performance</span>
                       </li>
-                      <li className="flex items-start opacity-60">
+                      <li className="flex items-start text-[#34495E]/60">
                         <div className="mr-3 mt-1">
                           <div className="w-2 h-2 rounded-full bg-[#F39C12]" />
                         </div>
                         <span>Stakes are always high</span>
                       </li>
-                      <li className="flex items-start opacity-60">
+                      <li className="flex items-start text-[#34495E]/60">
                         <div className="mr-3 mt-1">
                           <div className="w-2 h-2 rounded-full bg-[#F39C12]" />
                         </div>
@@ -270,36 +299,36 @@ export default function HomeContent() {
                     </ul>
                   </div>
 
-                  {/* Right side - Professional Approach */}
-                  <div className="bg-[#27AE60]/20 p-8 rounded-xl">
+                  {/* Professional Approach Card */}
+                  <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                     <div className="flex items-center mb-6">
-                      <div className="p-3 rounded-lg bg-[#27AE60]/30">
+                      <div className="p-3 rounded-lg bg-[#27AE60]/10">
                         <Trophy className="w-6 h-6 text-[#27AE60]" />
                       </div>
-                      <h3 className="text-xl font-semibold ml-4">
+                      <h3 className="text-xl font-semibold ml-4 text-[#2C3E50]">
                         Professional Approach with Oratoria
                       </h3>
                     </div>
                     <ul className="space-y-4">
-                      <li className="flex items-start">
+                      <li className="flex items-start text-[#34495E]">
                         <div className="mr-3 mt-1">
                           <Swords className="w-4 h-4 text-[#27AE60]" />
                         </div>
                         <span>Practice specific scenarios repeatedly, like chess players studying positions</span>
                       </li>
-                      <li className="flex items-start">
+                      <li className="flex items-start text-[#34495E]">
                         <div className="mr-3 mt-1">
                           <BarChart className="w-4 h-4 text-[#27AE60]" />
                         </div>
                         <span>Get detailed feedback and analysis after each conversation</span>
                       </li>
-                      <li className="flex items-start">
+                      <li className="flex items-start text-[#34495E]">
                         <div className="mr-3 mt-1">
                           <Shield className="w-4 h-4 text-[#27AE60]" />
                         </div>
                         <span>Practice in a safe environment where mistakes are learning opportunities</span>
                       </li>
-                      <li className="flex items-start">
+                      <li className="flex items-start text-[#34495E]">
                         <div className="mr-3 mt-1">
                           <Target className="w-4 h-4 text-[#27AE60]" />
                         </div>
@@ -311,7 +340,7 @@ export default function HomeContent() {
 
                 <div className="mt-12 text-center">
                   <SignInButton mode="modal">
-                    <button className="bg-[#F39C12] text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#F39C12]/90 transition-all transform hover:scale-105 inline-flex items-center gap-2 shadow-lg">
+                    <button className="bg-[#27AE60] text-white px-8 py-4 rounded-lg text-lg font-semibold hover:bg-[#27AE60]/90 transition-all transform hover:scale-105 inline-flex items-center gap-2 shadow-lg">
                       Start Professional Training <ArrowRight className="w-5 h-5" />
                     </button>
                   </SignInButton>
@@ -320,12 +349,12 @@ export default function HomeContent() {
             </section>
 
             {/* Historical Timeline Section */}
-            <section className="py-20 bg-white overflow-x-hidden">
+            <section className="py-20 bg-[#ECF0F1] overflow-x-hidden">
               <div className="container mx-auto px-4">
                 <h2 className="text-3xl md:text-4xl font-bold text-center mb-4 text-[#2C3E50]">
                   Legacy of Great Communicators
                 </h2>
-                <p className="text-center text-gray-600 mb-16 max-w-2xl mx-auto">
+                <p className="text-center text-[#34495E] mb-16 max-w-2xl mx-auto">
                   From ancient philosophers to modern leaders, the art of conversation has shaped history
                 </p>
                 <div className="relative">
@@ -367,17 +396,17 @@ export default function HomeContent() {
             </section>
 
             {/* Footer */}
-            <footer className="bg-[#2C3E50] text-white py-16">
+            <footer className="bg-white text-[#2C3E50] py-16 border-t border-gray-100">
               <div className="container mx-auto px-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
                   {/* Project Info */}
                   <div className="space-y-4">
                     <h3 className="text-2xl font-bold">Oratoria</h3>
-                    <p className="text-gray-300 text-sm max-w-md">
+                    <p className="text-[#34495E] text-sm max-w-md">
                       An AI agent project created for the ElevenLabs x a16z Hackathon. Using advanced language models and voice AI to create an interactive conversation partner that helps you master social interactions.
                     </p>
                     <SignInButton mode="modal">
-                      <button className="bg-[#F39C12] text-white px-6 py-2 rounded-lg hover:bg-[#F39C12]/90 transition-all transform hover:scale-105 inline-flex items-center gap-2 text-sm">
+                      <button className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#27AE60]/90 transition-all transform hover:scale-105 inline-flex items-center gap-2 text-sm font-semibold">
                         Try the Demo <ArrowRight className="w-4 h-4" />
                       </button>
                     </SignInButton>
@@ -386,20 +415,30 @@ export default function HomeContent() {
                   {/* Contact */}
                   <div className="space-y-4">
                     <h4 className="font-semibold">Contact the Creator</h4>
-                    <div className="flex items-center space-x-2 text-gray-300">
-                      <Mail className="w-5 h-5" />
-                      <a href="mailto:wasilewski.sf@gmail.com" className="hover:text-[#F39C12] transition-colors">
-                        wasilewski.sf@gmail.com
-                      </a>
+                    <div className="flex flex-col space-y-2">
+                      <div className="flex items-center space-x-2 text-[#34495E]">
+                        <Mail className="w-5 h-5" />
+                        <a href="mailto:wasilewski.sf@gmail.com" className="hover:text-[#27AE60] transition-colors">
+                          wasilewski.sf@gmail.com
+                        </a>
+                      </div>
+                      <div className="flex items-center space-x-2 text-[#34495E]">
+                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                          <path d="M20.5 2h-17A1.5 1.5 0 002 3.5v17A1.5 1.5 0 003.5 22h17a1.5 1.5 0 001.5-1.5v-17A1.5 1.5 0 0020.5 2zM8 19H5v-9h3zM6.5 8.25A1.75 1.75 0 118.3 6.5a1.78 1.78 0 01-1.8 1.75zM19 19h-3v-4.74c0-1.42-.6-1.93-1.38-1.93A1.74 1.74 0 0013 14.19a.66.66 0 000 .14V19h-3v-9h2.9v1.3a3.11 3.11 0 012.7-1.4c1.55 0 3.36.86 3.36 3.66z"></path>
+                        </svg>
+                        <a href="https://www.linkedin.com/in/stanislaw-wasilewski/" target="_blank" className="hover:text-[#27AE60] transition-colors">
+                          Stanisław Wasilewski
+                        </a>
+                      </div>
                     </div>
-                    <p className="text-gray-400 text-sm mt-4">
+                    <p className="text-[#34495E] text-sm mt-4">
                       This prototype demonstrates how AI agents can revolutionize the way we practice and improve our conversation skills through personalized, interactive training sessions.
                     </p>
                   </div>
                 </div>
 
-                <div className="border-t border-gray-700 mt-12 pt-8 text-center text-gray-400 text-sm">
-                  <p>Created for ElevenLabs x a16z AI Agents Hackathon 2024</p>
+                <div className="border-t border-gray-100 mt-12 pt-8 text-center text-[#34495E] text-sm">
+                  <p>Created by Stanisław Wasilewski for ElevenLabs x a16z AI Agents Hackathon 2025</p>
                 </div>
               </div>
             </footer>
@@ -472,10 +511,10 @@ function PromiseCard({ icon, title, points }: {
   points: string[];
 }) {
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg hover:shadow-xl transition-all group border border-gray-100">
+    <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all group border border-gray-100">
       <div className="flex items-center mb-6">
-        <div className="p-3 rounded-lg bg-[#ECF0F1] group-hover:bg-[#27AE60] transition-colors">
-          <div className="text-[#2C3E50] group-hover:text-white transition-colors">
+        <div className="p-3 rounded-lg bg-[#27AE60]/10 group-hover:bg-[#27AE60]/20 transition-colors">
+          <div className="text-[#27AE60]">
             {icon}
           </div>
         </div>
@@ -488,9 +527,9 @@ function PromiseCard({ icon, title, points }: {
         {points.map((point, index) => (
           <li key={index} className="flex items-start">
             <div className="mr-2 mt-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#F39C12]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" />
             </div>
-            <span className="text-gray-600 text-sm">
+            <span className="text-[#34495E] text-sm">
               {point}
             </span>
           </li>
