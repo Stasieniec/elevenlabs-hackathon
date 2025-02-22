@@ -4,6 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import Link from 'next/link';
 import { ArrowRight, Users, Target, Crown, GraduationCap, Scroll, Star, Briefcase, Heart, ShieldCheck, Handshake, Presentation, Swords, BarChart, Shield, Trophy, Mail, ChevronDown } from 'lucide-react';
+import VideoPlayer from './components/VideoPlayer';
 
 // Client-side wrapper component
 function ClientOnly({ children }: { children: React.ReactNode }) {
@@ -125,6 +126,27 @@ export default function HomeContent() {
               {/* Learn More Button - fixed at bottom */}
               <div className="container mx-auto px-4 pb-8">
                 <ScrollButton onClick={handleScroll} />
+              </div>
+            </section>
+
+            {/* Video Section */}
+            <section className="relative py-20 bg-white">
+              <div className="container mx-auto px-4">
+                <div className="max-w-4xl mx-auto">
+                  <VideoPlayer 
+                    libraryId="387840"
+                    videoId="d2b1f5cc-7e7a-412a-9a50-a8250b43fbd8"
+                    title="Watch our trailer"
+                  />
+                  <div className="text-center mt-8">
+                    <h2 className="text-2xl md:text-3xl font-bold text-[#2C3E50] mb-4">
+                      See Oratoria in Action
+                    </h2>
+                    <p className="text-[#34495E] text-lg">
+                      Watch how our AI-powered platform helps you master the art of conversation
+                    </p>
+                  </div>
+                </div>
               </div>
             </section>
 
