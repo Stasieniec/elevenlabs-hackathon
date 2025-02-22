@@ -2,15 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '../components/Navigation';
-import { BookOpen, Users, MessageSquare, Briefcase, Trash2 } from 'lucide-react';
+import { BookOpen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import ConfirmDialog from '../components/ConfirmDialog';
+import { courses } from '@/lib/courses';
 
 type Course = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   progress: number;
@@ -21,132 +22,110 @@ type Course = {
   categoryColor: string;
 };
 
-// Temporary mock data
-const coursesData: Course[] = [
-  {
-    id: 1,
-    title: 'Small Talk Mastery',
-    description: 'Learn to navigate casual conversations with confidence and ease.',
-    progress: 60,
-    totalChapters: 5,
-    completedChapters: 3,
-    icon: Users,
-    category: 'Social Skills',
-    categoryColor: '#F39C12',
-  },
-  {
-    id: 2,
-    title: 'Professional Negotiations',
-    description: 'Master the art of business negotiations and deal-making.',
-    progress: 30,
-    totalChapters: 6,
-    completedChapters: 2,
-    icon: Briefcase,
-    category: 'Professional',
-    categoryColor: '#27AE60',
-  },
-  {
-    id: 3,
-    title: 'Interview Excellence',
-    description: 'Prepare for job interviews and learn to present yourself effectively.',
-    progress: 15,
-    totalChapters: 4,
-    completedChapters: 1,
-    icon: MessageSquare,
-    category: 'Career',
-    categoryColor: '#2C3E50',
-  },
-];
-
 export default function CoursesPage() {
   const { user } = useUser();
+  const supabase = useSupabaseAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [courseToUnenroll, setCourseToUnenroll] = useState<Course | null>(null);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
-      if (!user) return;
+      if (!user || !supabase) {
+        setLoading(false);
+        return;
+      }
 
       try {
-        const { data: enrollments, error } = await supabase
+        setError(null);
+        const { data: enrollments, error: enrollmentsError } = await supabase
           .from('course_enrollments')
           .select('course_id')
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        if (enrollmentsError) throw enrollmentsError;
 
-        // Filter coursesData to get only enrolled courses
-        const enrolledCourseIds = enrollments.map(e => parseInt(e.course_id));
-        const userCourses = coursesData.filter(course => 
-          enrolledCourseIds.includes(course.id)
-        );
+        // Get enrolled courses from our static data
+        const userCourses = enrollments?.map(enrollment => {
+          const course = courses.find(c => c.id === enrollment.course_id);
+          if (!course) return null;
+          
+          return {
+            id: course.id,
+            title: course.title,
+            description: course.description,
+            progress: 0, // We'll implement proper progress tracking later
+            totalChapters: course.chapters.length,
+            completedChapters: 0, // We'll implement this later
+            icon: course.icon,
+            category: course.category,
+            categoryColor: course.categoryColor,
+          };
+        }).filter((course): course is Course => course !== null) || [];
 
         setEnrolledCourses(userCourses);
-      } catch (error) {
-        console.error('Error fetching enrolled courses:', error);
+      } catch (err) {
+        console.error('Error fetching enrolled courses:', err);
+        setError('Failed to load your courses. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
+    setLoading(true);
     fetchEnrolledCourses();
-  }, [user]);
+  }, [user, supabase]);
 
   const handleUnenroll = async () => {
-    if (!user) {
-      console.error('User not authenticated');
-      return;
-    }
-
-    if (!courseToUnenroll) {
-      console.error('No course selected for unenrollment');
+    if (!user || !supabase || !courseToUnenroll) {
+      console.error('Missing required data for unenrollment');
       return;
     }
 
     try {
-      // First verify the enrollment exists
-      const { data: existing } = await supabase
-        .from('course_enrollments')
-        .select('id')
-        .eq('user_id', user.id)
-        .eq('course_id', courseToUnenroll.id.toString())
-        .single();
-
-      if (!existing) {
-        console.error('Not enrolled in this course');
-        return;
-      }
-
-      const { error } = await supabase
+      setError(null);
+      const { error: deleteError } = await supabase
         .from('course_enrollments')
         .delete()
         .eq('user_id', user.id)
-        .eq('course_id', courseToUnenroll.id.toString());
+        .eq('course_id', courseToUnenroll.id);
 
-      if (error) {
-        console.error('Error details:', error);
-        throw error;
-      }
+      if (deleteError) throw deleteError;
 
       // Remove course from state
       setEnrolledCourses(prev => 
         prev.filter(course => course.id !== courseToUnenroll.id)
       );
-    } catch (error) {
-      console.error('Error unenrolling from course:', error);
-      // Show error message to user
+    } catch (err) {
+      console.error('Error unenrolling from course:', err);
+      setError('Failed to unenroll from the course. Please try again later.');
     } finally {
       setCourseToUnenroll(null);
     }
   };
 
-  if (loading) {
+  if (!user) {
     return (
       <main className="min-h-screen bg-[#ECF0F1]">
         <Navigation />
         <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-          <div className="text-center">Loading your courses...</div>
+          <div className="text-center">
+            <p className="text-[#34495E] text-lg">Please sign in to view your courses.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!supabase) {
+    return (
+      <main className="min-h-screen bg-[#ECF0F1]">
+        <Navigation />
+        <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
+          <div className="text-center">
+            <p className="text-[#34495E] text-lg">Initializing...</p>
+          </div>
         </div>
       </main>
     );
@@ -157,16 +136,37 @@ export default function CoursesPage() {
       <Navigation />
       
       <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
-            <BookOpen size={32} className="text-[#27AE60]" />
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center space-x-4">
+            <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
+              <BookOpen size={32} className="text-[#27AE60]" />
+            </div>
+            <h1 className="text-3xl font-bold text-[#2C3E50]">My Courses</h1>
           </div>
-          <h1 className="text-3xl font-bold text-[#2C3E50]">My Courses</h1>
+          <Link 
+            href="/courses/browse"
+            className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#219653] transition-colors"
+          >
+            Browse Courses
+          </Link>
         </div>
 
-        {enrolledCourses.length === 0 ? (
-          <div className="bg-white rounded-xl p-8 text-center">
-            <p className="text-[#34495E] text-lg mb-4">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
+        {loading ? (
+          <div className="text-center py-12">
+            <p className="text-[#34495E] text-lg">Loading your courses...</p>
+          </div>
+        ) : enrolledCourses.length === 0 ? (
+          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+            <div className="mb-4">
+              <BookOpen size={48} className="text-gray-400 mx-auto" />
+            </div>
+            <p className="text-[#34495E] mb-4">
               You haven&apos;t enrolled in any courses yet.
             </p>
             <Link 
@@ -177,35 +177,26 @@ export default function CoursesPage() {
             </Link>
           </div>
         ) : (
-          <div className="grid grid-cols-1 gap-6">
+          <div className="grid gap-6">
             {enrolledCourses.map((course) => {
               const Icon = course.icon;
               return (
                 <div 
                   key={course.id}
-                  className="bg-white rounded-xl p-6 shadow-sm group relative"
+                  className="bg-white rounded-xl p-6 shadow-sm"
                 >
-                  <button
-                    onClick={() => setCourseToUnenroll(course)}
-                    className="absolute top-4 right-4 p-2 text-gray-400 hover:text-red-500 transition-colors"
-                    title="Unenroll from course"
-                  >
-                    <Trash2 size={20} />
-                  </button>
-
-                  <Link 
-                    href={`/courses/${course.id}`}
-                    className="flex items-start space-x-4"
-                  >
-                    <div className="p-3 rounded-full bg-opacity-10" style={{ backgroundColor: `${course.categoryColor}20` }}>
-                      <Icon size={24} style={{ color: course.categoryColor }} />
-                    </div>
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div>
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-start space-x-4">
+                      <div 
+                        className="p-3 rounded-full bg-opacity-10"
+                        style={{ backgroundColor: `${course.categoryColor}20` }}
+                      >
+                        <Icon size={24} style={{ color: course.categoryColor }} />
+                      </div>
+                      <div>
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
                           <span 
-                            className="text-sm font-medium px-3 py-1 rounded-full" 
+                            className="text-sm font-medium px-3 py-1 rounded-full"
                             style={{ 
                               backgroundColor: `${course.categoryColor}20`,
                               color: course.categoryColor
@@ -213,32 +204,41 @@ export default function CoursesPage() {
                           >
                             {course.category}
                           </span>
-                          <h2 className="text-xl font-semibold text-[#2C3E50] mt-2 group-hover:text-[#27AE60] transition-colors">
-                            {course.title}
-                          </h2>
+                          <span className="text-sm text-gray-600">
+                            {course.completedChapters} of {course.totalChapters} chapters completed
+                          </span>
                         </div>
-                      </div>
-                      
-                      <p className="text-[#34495E] mt-2">
-                        {course.description}
-                      </p>
-                      
-                      <div className="mt-4">
-                        <div className="w-full h-2 bg-gray-100 rounded-full">
-                          <div 
-                            className="h-full rounded-full transition-all duration-500"
-                            style={{ 
-                              width: `${course.progress}%`,
-                              backgroundColor: course.categoryColor
-                            }}
-                          />
-                        </div>
-                        <div className="mt-2 text-sm text-gray-600">
-                          {course.completedChapters} of {course.totalChapters} chapters completed
+                        <h2 className="text-xl font-semibold text-[#2C3E50] mb-2">
+                          {course.title}
+                        </h2>
+                        <p className="text-[#34495E] mb-4">
+                          {course.description}
+                        </p>
+                        <div className="flex items-center space-x-4">
+                          <Link
+                            href={`/courses/${course.id}`}
+                            className="bg-[#27AE60] text-white px-4 py-2 rounded hover:bg-[#219653] transition-colors"
+                          >
+                            Continue Learning
+                          </Link>
+                          <button
+                            onClick={() => setCourseToUnenroll(course)}
+                            className="text-red-600 hover:text-red-700 transition-colors"
+                          >
+                            <Trash2 size={20} />
+                          </button>
                         </div>
                       </div>
                     </div>
-                  </Link>
+                    <div className="w-32">
+                      <div className="h-2 bg-gray-200 rounded-full">
+                        <div 
+                          className="h-full bg-[#27AE60] rounded-full"
+                          style={{ width: `${course.progress}%` }}
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
               );
             })}

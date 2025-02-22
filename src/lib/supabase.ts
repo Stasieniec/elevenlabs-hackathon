@@ -3,8 +3,23 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-export const supabase = createClient(supabaseUrl, supabaseKey)
+// Create a Supabase client with custom auth header handling
+export const createClerkSupabaseClient = async (session: { getToken: (opts: { template: string }) => Promise<string | null> }) => {
+  const token = await session.getToken({ template: 'supabase' })
+  if (!token) {
+    throw new Error('Failed to get Supabase token from Clerk session');
+  }
+  
+  return createClient(supabaseUrl, supabaseKey, {
+    global: {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  })
+}
 
+// Export types
 export type Course = {
   id: string
   title: string

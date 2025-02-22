@@ -2,209 +2,176 @@
 
 import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
-import { BookOpen, Users, MessageSquare, Briefcase, Search, Lightbulb, HeartHandshake, Brain, Plus, Trash2 } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
+import { BookOpen, Search, Plus, Trash2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { supabase } from '@/lib/supabase';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import ConfirmDialog from '../../components/ConfirmDialog';
+import { Course as CourseType, courses } from '@/lib/courses';
 
-type Course = {
-  id: number;
-  title: string;
-  description: string;
-  icon: LucideIcon;
-  category: string;
-  categoryColor: string;
-  difficulty: 'Beginner' | 'Intermediate' | 'Advanced';
-  duration: string;
-  enrolled: number;
-};
-
-const courses: Course[] = [
-  {
-    id: 1,
-    title: 'Small Talk Mastery',
-    description: 'Learn to navigate casual conversations with confidence and ease.',
-    icon: Users,
-    category: 'Social Skills',
-    categoryColor: '#F39C12',
-    difficulty: 'Beginner',
-    duration: '4 weeks',
-    enrolled: 1234,
-  },
-  {
-    id: 2,
-    title: 'Professional Negotiations',
-    description: 'Master the art of business negotiations and deal-making.',
-    icon: Briefcase,
-    category: 'Professional',
-    categoryColor: '#27AE60',
-    difficulty: 'Advanced',
-    duration: '6 weeks',
-    enrolled: 856,
-  },
-  {
-    id: 3,
-    title: 'Interview Excellence',
-    description: 'Prepare for job interviews and learn to present yourself effectively.',
-    icon: MessageSquare,
-    category: 'Career',
-    categoryColor: '#2C3E50',
-    difficulty: 'Intermediate',
-    duration: '3 weeks',
-    enrolled: 2156,
-  },
-  {
-    id: 4,
-    title: 'Public Speaking Fundamentals',
-    description: 'Build confidence and master the art of public speaking.',
-    icon: Users,
-    category: 'Professional',
-    categoryColor: '#27AE60',
-    difficulty: 'Beginner',
-    duration: '5 weeks',
-    enrolled: 3421,
-  },
-  {
-    id: 5,
-    title: 'Conflict Resolution',
-    description: 'Learn to handle difficult conversations and resolve conflicts effectively.',
-    icon: HeartHandshake,
-    category: 'Social Skills',
-    categoryColor: '#F39C12',
-    difficulty: 'Intermediate',
-    duration: '4 weeks',
-    enrolled: 987,
-  },
-  {
-    id: 6,
-    title: 'Leadership Communication',
-    description: 'Develop the communication skills needed to be an effective leader.',
-    icon: Brain,
-    category: 'Professional',
-    categoryColor: '#27AE60',
-    difficulty: 'Advanced',
-    duration: '8 weeks',
-    enrolled: 654,
-  },
-  {
-    id: 7,
-    title: 'Social Intelligence',
-    description: 'Enhance your emotional intelligence and social awareness.',
-    icon: Lightbulb,
-    category: 'Social Skills',
-    categoryColor: '#F39C12',
-    difficulty: 'Intermediate',
-    duration: '6 weeks',
-    enrolled: 1543,
-  },
-];
+type Course = CourseType;
 
 const categories = Array.from(new Set(courses.map(course => course.category)));
 const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
 
 export default function BrowseCoursesPage() {
   const { user } = useUser();
+  const supabase = useSupabaseAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
-  const [enrollingCourseId, setEnrollingCourseId] = useState<number | null>(null);
-  const [enrolledCourseIds, setEnrolledCourseIds] = useState<number[]>([]);
+  const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [courseToUnenroll, setCourseToUnenroll] = useState<Course | null>(null);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
-      if (!user) return;
+      if (!user || !supabase) {
+        setLoading(false);
+        return;
+      }
 
       try {
-        const { data: enrollments, error } = await supabase
+        setError(null);
+        const { data: enrollments, error: supabaseError } = await supabase
           .from('course_enrollments')
           .select('course_id')
           .eq('user_id', user.id);
 
-        if (error) throw error;
+        if (supabaseError) {
+          throw supabaseError;
+        }
 
-        const ids = enrollments?.map(e => parseInt(e.course_id)) || [];
+        const ids = enrollments?.map(e => e.course_id) || [];
         setEnrolledCourseIds(ids);
-      } catch (error) {
-        console.error('Error fetching enrolled courses:', error);
+      } catch (err) {
+        console.error('Error fetching enrolled courses:', err);
+        setError('Failed to load enrolled courses. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
+    setLoading(true);
     fetchEnrolledCourses();
-  }, [user]);
+  }, [user, supabase]);
 
-  const handleUnenroll = async (courseId: number) => {
-    if (!user) {
-      console.error('User not authenticated');
+  const handleUnenroll = async (courseId: string) => {
+    if (!user || !supabase) {
+      setError('You must be signed in to unenroll from courses');
       return;
     }
     
     setEnrollingCourseId(courseId);
     try {
-      const { error } = await supabase
+      setError(null);
+      const { error: supabaseError } = await supabase
         .from('course_enrollments')
         .delete()
         .eq('user_id', user.id)
-        .eq('course_id', courseId.toString());
+        .eq('course_id', courseId);
 
-      if (error) {
-        console.error('Error details:', error);
-        throw error;
+      if (supabaseError) {
+        throw supabaseError;
       }
 
       setEnrolledCourseIds(prev => prev.filter(id => id !== courseId));
-    } catch (error) {
-      console.error('Error unenrolling from course:', error);
+    } catch (err) {
+      console.error('Error unenrolling from course:', err);
+      setError('Failed to unenroll from course. Please try again later.');
     } finally {
       setEnrollingCourseId(null);
       setCourseToUnenroll(null);
     }
   };
 
-  const handleEnroll = async (courseId: number) => {
-    if (!user) {
-      console.error('User not authenticated');
+  const handleEnroll = async (courseId: string) => {
+    if (!user || !supabase) {
+      setError('You must be signed in to enroll in courses');
       return;
     }
     
     setEnrollingCourseId(courseId);
     try {
+      setError(null);
       // First check if already enrolled
-      const { data: existing } = await supabase
+      const { data: existing, error: existingError } = await supabase
         .from('course_enrollments')
         .select('id')
         .eq('user_id', user.id)
-        .eq('course_id', courseId.toString())
+        .eq('course_id', courseId)
         .single();
 
+      if (existingError && existingError.code !== 'PGRST116') { // PGRST116 means no rows returned
+        throw existingError;
+      }
+
       if (existing) {
-        console.error('Already enrolled in this course');
+        setError('You are already enrolled in this course');
         return;
       }
 
-      const { error } = await supabase
+      // Start a transaction to create all necessary records
+      const course = courses.find(c => c.id === courseId);
+      if (!course) {
+        throw new Error('Course not found');
+      }
+
+      // 1. Create course enrollment
+      const { error: enrollmentError } = await supabase
         .from('course_enrollments')
         .insert([
           {
             user_id: user.id,
-            course_id: courseId.toString(),
+            course_id: courseId,
           }
         ]);
 
-      if (error) {
-        console.error('Error details:', error);
-        throw error;
+      if (enrollmentError) throw enrollmentError;
+
+      // 2. Initialize chapter progress for each chapter
+      for (const chapter of course.chapters) {
+        const { error: chapterError } = await supabase
+          .from('chapter_progress')
+          .insert([
+            {
+              user_id: user.id,
+              course_id: courseId,
+              chapter_id: chapter.id,
+              completed: false,
+              completion_percentage: 0,
+              average_score: 0,
+              key_learnings: [],
+              areas_for_improvement: []
+            }
+          ]);
+        
+        if (chapterError) throw chapterError;
+
+        // 3. Initialize situation progress for each situation
+        for (const situation of chapter.situations) {
+          const { error: progressError } = await supabase
+            .from('user_progress')
+            .insert([
+              {
+                user_id: user.id,
+                situation_id: situation.id,
+                completed: false,
+                score: 0,
+                feedback: null
+              }
+            ]);
+          
+          if (progressError) throw progressError;
+        }
       }
 
       // Show success message or redirect
       window.location.href = '/courses';
-    } catch (error) {
-      console.error('Error enrolling in course:', error);
-      // Show error message to user
+    } catch (err) {
+      console.error('Error enrolling in course:', err);
+      setError('Failed to enroll in course. Please try again later.');
     } finally {
       setEnrollingCourseId(null);
     }
@@ -218,11 +185,43 @@ export default function BrowseCoursesPage() {
     return matchesSearch && matchesCategory && matchesDifficulty;
   });
 
+  if (!user) {
+    return (
+      <main className="min-h-screen bg-[#ECF0F1]">
+        <Navigation />
+        <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
+          <div className="text-center">
+            <p className="text-[#34495E] text-lg">Please sign in to browse courses.</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
+  if (!supabase) {
+    return (
+      <main className="min-h-screen bg-[#ECF0F1]">
+        <Navigation />
+        <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
+          <div className="text-center">
+            <p className="text-[#34495E] text-lg">Initializing...</p>
+          </div>
+        </div>
+      </main>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-[#ECF0F1]">
       <Navigation />
       
       <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+            {error}
+          </div>
+        )}
+
         <div className="flex items-center space-x-4 mb-8">
           <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
             <BookOpen size={32} className="text-[#27AE60]" />
@@ -289,7 +288,7 @@ export default function BrowseCoursesPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {filteredCourses.map((course) => {
                 const Icon = course.icon;
-                const isEnrolling = enrollingCourseId === course.id;
+                const isEnrolling = enrollingCourseId === course.id.toString();
 
                 return (
                   <div 
@@ -327,8 +326,7 @@ export default function BrowseCoursesPage() {
                         
                         <div className="mt-4 flex items-center justify-between">
                           <div className="text-sm text-gray-600">
-                            <span className="mr-4">{course.duration}</span>
-                            <span>{course.enrolled.toLocaleString()} enrolled</span>
+                            <span>{course.duration}</span>
                           </div>
                           {enrolledCourseIds.includes(course.id) ? (
                             <button
@@ -380,7 +378,7 @@ export default function BrowseCoursesPage() {
         message={`Are you sure you want to unenroll from ${courseToUnenroll?.title}? Your progress will be lost.`}
         confirmLabel="Unenroll"
         cancelLabel="Cancel"
-        onConfirm={() => courseToUnenroll && handleUnenroll(courseToUnenroll.id)}
+        onConfirm={() => courseToUnenroll && handleUnenroll(courseToUnenroll.id.toString())}
         onCancel={() => setCourseToUnenroll(null)}
       />
     </main>

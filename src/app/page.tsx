@@ -6,17 +6,11 @@ import { Zap, PlusCircle, ChevronRight, ArrowRight, BookOpen } from 'lucide-reac
 import Navigation from './components/Navigation';
 import Link from 'next/link';
 import { useUser } from '@clerk/nextjs';
-import { supabase } from '@/lib/supabase';
-
-// Temporary mock data
-const coursesData = [
-  { id: 1, title: 'Small Talk', description: 'Learn how to have a conversation with anyone', progress: 60, lastAccessed: '2024-02-22' },
-  { id: 2, title: 'Negotiations', description: 'Learn how to negotiate effectively', progress: 30, lastAccessed: '2024-02-21' },
-  { id: 3, title: 'Interviews', description: 'Learn how to prepare for and ace job interviews', progress: 15, lastAccessed: '2024-02-20' },
-];
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { courses } from '@/lib/courses';
 
 type Course = {
-  id: number;
+  id: string;
   title: string;
   description: string;
   progress: number;
@@ -25,215 +19,217 @@ type Course = {
 
 export default function Home() {
   const { user } = useUser();
+  const supabase = useSupabaseAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
-      if (!user) return;
+      if (!user || !supabase) {
+        setLoading(false);
+        return;
+      }
 
       try {
-        const { data: enrollments, error } = await supabase
+        setError(null);
+        const { data: enrollments, error: enrollmentsError } = await supabase
           .from('course_enrollments')
           .select('course_id, last_accessed_at')
           .eq('user_id', user.id)
           .order('last_accessed_at', { ascending: false })
           .limit(3);
 
-        if (error) throw error;
+        if (enrollmentsError) throw enrollmentsError;
 
         // Get the course details from our static data
-        const courses = enrollments.map(enrollment => ({
-          id: parseInt(enrollment.course_id),
-          title: coursesData.find(c => c.id === parseInt(enrollment.course_id))?.title || 'Unknown Course',
-          description: coursesData.find(c => c.id === parseInt(enrollment.course_id))?.description || '',
-          progress: 0, // We'll implement proper progress tracking later
-          lastAccessed: new Date(enrollment.last_accessed_at).toLocaleDateString(),
-        }));
+        const userCourses = enrollments?.map((enrollment: { course_id: string; last_accessed_at: string }) => {
+          const course = courses.find(c => c.id === enrollment.course_id);
+          return {
+            id: enrollment.course_id,
+            title: course?.title || 'Unknown Course',
+            description: course?.description || '',
+            progress: 0, // We'll implement proper progress tracking later
+            lastAccessed: new Date(enrollment.last_accessed_at).toLocaleDateString(),
+          };
+        }) || [];
 
-        setEnrolledCourses(courses);
-      } catch (error) {
-        console.error('Error fetching enrolled courses:', error);
+        setEnrolledCourses(userCourses);
+      } catch (err) {
+        console.error('Error fetching enrolled courses:', err);
+        setError('Failed to load your courses. Please try again later.');
       } finally {
         setLoading(false);
       }
     };
 
+    setLoading(true);
     fetchEnrolledCourses();
-  }, [user]);
+  }, [user, supabase]);
 
   return (
-    <>
-      <SignedIn>
-        <main className="min-h-screen bg-[#ECF0F1]">
-          <Navigation />
-          
-          <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-            <h1 className="text-3xl font-bold text-[#2C3E50] mb-8">Welcome to Oratoria</h1>
-            
-            {/* Continue Training Section */}
-            <section className="bg-white rounded-xl p-6 shadow-sm mb-6">
-              <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-[#2C3E50]">Continue Training</h2>
+    <main className="min-h-screen bg-[#ECF0F1]">
+      <Navigation />
+      
+      <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
+        <SignedIn>
+          <section className="bg-white rounded-xl p-8 shadow-sm mb-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-[#2C3E50]">Recent Courses</h2>
+              <Link 
+                href="/courses/browse"
+                className="text-[#27AE60] hover:text-[#219653] flex items-center"
+              >
+                Browse All <ChevronRight size={20} />
+              </Link>
+            </div>
+
+            {error && (
+              <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+                {error}
+              </div>
+            )}
+
+            {loading ? (
+              <div className="text-center py-4">
+                <p className="text-[#34495E]">Loading your courses...</p>
+              </div>
+            ) : enrolledCourses.length === 0 ? (
+              <div className="text-center py-8">
+                <div className="mb-4">
+                  <BookOpen size={48} className="text-gray-400 mx-auto" />
+                </div>
+                <p className="text-[#34495E] mb-4">
+                  You haven&apos;t enrolled in any courses yet.
+                </p>
                 <Link 
-                  href="/courses" 
-                  className="flex items-center text-[#27AE60] hover:text-[#219653] transition-colors"
+                  href="/courses/browse"
+                  className="inline-block bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#219653] transition-colors"
                 >
-                  See all courses
-                  <ChevronRight size={20} />
+                  Browse Courses
                 </Link>
               </div>
-              
-              {loading ? (
-                <div className="text-center py-4">
-                  <p className="text-[#34495E]">Loading your courses...</p>
-                </div>
-              ) : enrolledCourses.length === 0 ? (
-                <div className="text-center py-8">
-                  <div className="mb-4">
-                    <BookOpen size={48} className="text-gray-400 mx-auto" />
-                  </div>
-                  <p className="text-[#34495E] mb-4">
-                    You haven&apos;t enrolled in any courses yet.
-                  </p>
-                  <Link 
-                    href="/courses/browse"
-                    className="inline-block bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#219653] transition-colors"
+            ) : (
+              <div className="space-y-4">
+                {enrolledCourses.map((course) => (
+                  <Link
+                    key={course.id}
+                    href={`/courses/${course.id}`}
                   >
-                    Browse Courses
-                  </Link>
-                </div>
-              ) : (
-                <div className="space-y-4">
-                  {enrolledCourses.map((course) => (
-                    <Link
-                      key={course.id}
-                      href={`/courses/${course.id}`}
+                    <div 
+                      className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                     >
-                      <div 
-                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                      >
-                        <div>
-                          <h3 className="font-medium text-[#34495E]">{course.title}</h3>
-                          <p className="text-sm text-gray-500">
-                            Last accessed: {course.lastAccessed}
-                          </p>
-                        </div>
-                        <div className="flex items-center">
-                          <div className="w-32 h-2 bg-gray-200 rounded-full">
-                            <div 
-                              className="h-full bg-[#27AE60] rounded-full"
-                              style={{ width: `${course.progress}%` }}
-                            />
-                          </div>
+                      <div>
+                        <h3 className="font-medium text-[#34495E]">{course.title}</h3>
+                        <p className="text-sm text-gray-500">
+                          Last accessed: {course.lastAccessed}
+                        </p>
+                      </div>
+                      <div className="flex items-center">
+                        <div className="w-32 h-2 bg-gray-200 rounded-full">
+                          <div 
+                            className="h-full bg-[#27AE60] rounded-full"
+                            style={{ width: `${course.progress}%` }}
+                          />
                         </div>
                       </div>
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </section>
-            
-            {/* Quick Actions Section */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Quick Training Card */}
-              <Link 
-                href="/quick-training"
-                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow group"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-full bg-[#F39C12] bg-opacity-10">
-                    <Zap size={24} className="text-[#F39C12]" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">
-                      Quick Training
-                    </h2>
-                    <p className="text-gray-600">Practice with random situations</p>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </section>
+
+          <section className="bg-white rounded-xl p-8 shadow-sm">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold text-[#2C3E50]">Quick Actions</h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Link href="/quick-training">
+                <div className="p-6 border rounded-lg hover:border-[#27AE60] group transition-colors">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10 group-hover:bg-opacity-20 transition-colors">
+                      <Zap size={24} className="text-[#27AE60]" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">Quick Training</h3>
+                      <p className="text-sm text-gray-600">Practice random situations</p>
+                    </div>
                   </div>
                 </div>
               </Link>
-              
-              {/* Custom Situation Card */}
-              <Link 
-                href="/custom"
-                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-shadow group"
-              >
-                <div className="flex items-center space-x-4">
-                  <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
-                    <PlusCircle size={24} className="text-[#27AE60]" />
-                  </div>
-                  <div>
-                    <h2 className="text-lg font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">
-                      Custom Situation
-                    </h2>
-                    <p className="text-gray-600">Create your own scenario</p>
+              <Link href="/custom">
+                <div className="p-6 border rounded-lg hover:border-[#27AE60] group transition-colors">
+                  <div className="flex items-center space-x-4">
+                    <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10 group-hover:bg-opacity-20 transition-colors">
+                      <PlusCircle size={24} className="text-[#27AE60]" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">Custom Situation</h3>
+                      <p className="text-sm text-gray-600">Create your own scenario</p>
+                    </div>
                   </div>
                 </div>
               </Link>
             </div>
-          </div>
-        </main>
-      </SignedIn>
+          </section>
+        </SignedIn>
 
-      <SignedOut>
-        <main className="min-h-screen bg-[#ECF0F1]">
-          <nav className="bg-white shadow-sm">
-            <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
-              <span className="text-xl font-semibold text-[#2C3E50]">Oratoria</span>
-              <SignInButton mode="modal">
-                <button className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#219653] transition-colors">
-                  Sign In
-                </button>
-              </SignInButton>
-            </div>
-          </nav>
+        <SignedOut>
+          <main className="min-h-screen bg-[#ECF0F1]">
+            <nav className="bg-white shadow-sm">
+              <div className="max-w-6xl mx-auto px-4 h-16 flex justify-between items-center">
+                <span className="text-xl font-semibold text-[#2C3E50]">Oratoria</span>
+                <SignInButton mode="modal">
+                  <button className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#219653] transition-colors">
+                    Sign In
+                  </button>
+                </SignInButton>
+              </div>
+            </nav>
 
-          <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-            <div className="text-center mb-12">
-              <h1 className="text-4xl font-bold text-[#2C3E50] mb-4">
-                Master the Art of Communication
-              </h1>
-              <p className="text-xl text-[#34495E] mb-8">
-                Practice conversations, improve your social skills, and boost your confidence with AI-powered training.
-              </p>
-              <SignInButton mode="modal">
-                <button className="bg-[#27AE60] text-white px-8 py-3 rounded-lg text-lg hover:bg-[#219653] transition-colors flex items-center mx-auto">
-                  Get Started
-                  <ArrowRight className="ml-2" size={20} />
-                </button>
-              </SignInButton>
-            </div>
-
-            {/* Feature Highlights */}
-            <div className="grid md:grid-cols-3 gap-8">
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="p-3 rounded-full bg-[#F39C12] bg-opacity-10 w-fit mb-4">
-                  <Zap size={24} className="text-[#F39C12]" />
-                </div>
-                <h3 className="text-lg font-semibold text-[#2C3E50] mb-2">Real-time Practice</h3>
-                <p className="text-[#34495E]">Practice conversations with AI that adapts to your style and pace.</p>
+            <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
+              <div className="text-center mb-12">
+                <h1 className="text-4xl font-bold text-[#2C3E50] mb-4">
+                  Master the Art of Communication
+                </h1>
+                <p className="text-xl text-[#34495E] mb-8">
+                  Practice conversations, improve your social skills, and boost your confidence with AI-powered training.
+                </p>
+                <SignInButton mode="modal">
+                  <button className="bg-[#27AE60] text-white px-8 py-3 rounded-lg text-lg hover:bg-[#219653] transition-colors flex items-center mx-auto">
+                    Get Started
+                    <ArrowRight className="ml-2" size={20} />
+                  </button>
+                </SignInButton>
               </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10 w-fit mb-4">
-                  <PlusCircle size={24} className="text-[#27AE60]" />
+              {/* Feature Highlights */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="bg-white p-8 rounded-xl shadow-sm">
+                  <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10 w-fit mb-4">
+                    <Zap size={24} className="text-[#27AE60]" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#2C3E50] mb-2">AI-Powered Practice</h3>
+                  <p className="text-[#34495E]">
+                    Train with our advanced AI that adapts to your style and provides personalized feedback.
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-[#2C3E50] mb-2">Custom Scenarios</h3>
-                <p className="text-[#34495E]">Create and practice your own conversation scenarios.</p>
-              </div>
 
-              <div className="bg-white p-6 rounded-xl shadow-sm">
-                <div className="p-3 rounded-full bg-[#2C3E50] bg-opacity-10 w-fit mb-4">
-                  <ChevronRight size={24} className="text-[#2C3E50]" />
+                <div className="bg-white p-8 rounded-xl shadow-sm">
+                  <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10 w-fit mb-4">
+                    <BookOpen size={24} className="text-[#27AE60]" />
+                  </div>
+                  <h3 className="text-xl font-semibold text-[#2C3E50] mb-2">Structured Learning</h3>
+                  <p className="text-[#34495E]">
+                    Follow our carefully designed courses to master different aspects of communication.
+                  </p>
                 </div>
-                <h3 className="text-lg font-semibold text-[#2C3E50] mb-2">Track Progress</h3>
-                <p className="text-[#34495E]">Monitor your improvement with detailed feedback and analytics.</p>
               </div>
             </div>
-          </div>
-        </main>
-      </SignedOut>
-    </>
+          </main>
+        </SignedOut>
+      </div>
+    </main>
   );
 } 

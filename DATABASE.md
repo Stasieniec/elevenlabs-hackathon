@@ -12,7 +12,7 @@ Stores user preferences and language settings.
 ```sql
 CREATE TABLE user_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
+  user_id TEXT NOT NULL DEFAULT requesting_user_id(),
   native_languages TEXT[] NOT NULL DEFAULT '{}',
   social_languages TEXT[] NOT NULL DEFAULT '{}',
   professional_languages TEXT[] NOT NULL DEFAULT '{}',
@@ -45,13 +45,13 @@ Tracks user progress through situations and stores feedback.
 ```sql
 CREATE TABLE user_progress (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
+  user_id TEXT NOT NULL DEFAULT requesting_user_id(),
   situation_id TEXT NOT NULL,
   completed BOOLEAN DEFAULT FALSE,
   score INTEGER,
   feedback TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
   UNIQUE(user_id, situation_id)
 );
 ```
@@ -73,7 +73,7 @@ Stores user course enrollments and tracks their access.
 ```sql
 CREATE TABLE course_enrollments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
+  user_id TEXT NOT NULL DEFAULT requesting_user_id(),
   course_id TEXT NOT NULL,
   enrolled_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
   last_accessed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
@@ -96,7 +96,7 @@ Tracks user's learning goals and their progress.
 ```sql
 CREATE TABLE user_goals (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
+  user_id TEXT NOT NULL DEFAULT requesting_user_id(),
   goal_type TEXT NOT NULL,
   goal_description TEXT NOT NULL,
   priority INTEGER,
@@ -114,7 +114,7 @@ Stores detailed metrics and feedback from conversation practice sessions.
 ```sql
 CREATE TABLE conversation_performances (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
+  user_id TEXT NOT NULL DEFAULT requesting_user_id(),
   course_id TEXT NOT NULL,
   chapter_id TEXT NOT NULL,
   situation_id TEXT NOT NULL,
@@ -141,7 +141,7 @@ Tracks user progress through course chapters.
 ```sql
 CREATE TABLE chapter_progress (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id TEXT NOT NULL,
+  user_id TEXT NOT NULL DEFAULT requesting_user_id(),
   course_id TEXT NOT NULL,
   chapter_id TEXT NOT NULL,
   completed BOOLEAN DEFAULT false,
@@ -156,57 +156,38 @@ CREATE TABLE chapter_progress (
 
 ## Row Level Security (RLS)
 
-All tables implement Row Level Security to ensure users can only access their own data.
+All tables implement Row Level Security to ensure users can only access their own data. The `requesting_user_id()` function is used to extract the user ID from the JWT token:
 
-### user_preferences Policies:
 ```sql
+CREATE OR REPLACE FUNCTION requesting_user_id() 
+RETURNS text AS $$ 
+  SELECT NULLIF(current_setting('request.jwt.claims', true)::json->>'sub', '')::text;
+$$ LANGUAGE sql;
+```
+
+### RLS Policies
+
+Each table has the following policies:
+
+```sql
+-- Example for user_preferences (similar for all tables)
 ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users can view their own preferences" 
+CREATE POLICY "Users can view their own data" 
   ON user_preferences FOR SELECT 
-  USING (auth.uid()::text = user_id);
+  USING (requesting_user_id() = user_id);
 
-CREATE POLICY "Users can insert their own preferences" 
+CREATE POLICY "Users can insert their own data" 
   ON user_preferences FOR INSERT 
-  WITH CHECK (auth.uid()::text = user_id);
+  WITH CHECK (requesting_user_id() = user_id);
 
-CREATE POLICY "Users can update their own preferences" 
+CREATE POLICY "Users can update their own data" 
   ON user_preferences FOR UPDATE 
-  USING (auth.uid()::text = user_id);
-```
+  USING (requesting_user_id() = user_id);
 
-### user_progress Policies:
-```sql
-ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view their own progress" 
-  ON user_progress FOR SELECT 
-  USING (auth.uid()::text = user_id);
-
-CREATE POLICY "Users can insert their own progress" 
-  ON user_progress FOR INSERT 
-  WITH CHECK (auth.uid()::text = user_id);
-
-CREATE POLICY "Users can update their own progress" 
-  ON user_progress FOR UPDATE 
-  USING (auth.uid()::text = user_id);
-```
-
-### course_enrollments Policies:
-```sql
-ALTER TABLE course_enrollments ENABLE ROW LEVEL SECURITY;
-
-CREATE POLICY "Users can view their own enrollments" 
-  ON course_enrollments FOR SELECT 
-  USING (auth.uid()::text = user_id);
-
-CREATE POLICY "Users can enroll in courses" 
-  ON course_enrollments FOR INSERT 
-  WITH CHECK (auth.uid()::text = user_id);
-
-CREATE POLICY "Users can unenroll from courses" 
-  ON course_enrollments FOR DELETE 
-  USING (auth.uid()::text = user_id);
+CREATE POLICY "Users can delete their own data" 
+  ON user_preferences FOR DELETE 
+  USING (requesting_user_id() = user_id);
 ```
 
 ## Automatic Timestamps
@@ -228,7 +209,7 @@ CREATE TRIGGER update_timestamp
     EXECUTE FUNCTION update_updated_at_column();
 ```
 
-The course_enrollments table implements automatic `last_accessed_at` timestamp updates:
+The `course_enrollments` table also implements automatic `last_accessed_at` timestamp updates:
 
 ```sql
 CREATE OR REPLACE FUNCTION update_last_accessed_at()
@@ -244,6 +225,10 @@ CREATE TRIGGER update_course_enrollment_last_accessed
     FOR EACH ROW
     EXECUTE FUNCTION update_last_accessed_at();
 ```
+
+## Authentication
+
+The database uses Clerk for authentication. JWT tokens from Clerk are used to identify users, and the `requesting_user_id()` function extracts the user ID from these tokens. This ensures that users can only access their own data through Row Level Security policies.
 
 ## Course Content
 
