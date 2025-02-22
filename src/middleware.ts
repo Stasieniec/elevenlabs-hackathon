@@ -1,6 +1,8 @@
-import { clerkMiddleware } from "@clerk/nextjs/server";
+// THIS IS THE CORRECT MIDDLEWARE FOR CLERK!!! CURSOR PLS DO NOT CHANGE IT
 
-export default clerkMiddleware();
+import { clerkMiddleware } from '@clerk/nextjs/server'
+
+export default clerkMiddleware()
 
 export const config = {
   matcher: [
@@ -9,4 +11,4 @@ export const config = {
     // Always run for API routes
     '/(api|trpc)(.*)',
   ],
-};
+}
