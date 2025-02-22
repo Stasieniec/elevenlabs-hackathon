@@ -1,11 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
-import { BookOpen, Users, MessageSquare, Briefcase, Search, Lightbulb, HeartHandshake, Brain, Plus } from 'lucide-react';
+import { BookOpen, Users, MessageSquare, Briefcase, Search, Lightbulb, HeartHandshake, Brain, Plus, Trash2 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { supabase } from '@/lib/supabase';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 type Course = {
   id: number;
@@ -108,14 +109,61 @@ export default function BrowseCoursesPage() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<number | null>(null);
+  const [enrolledCourseIds, setEnrolledCourseIds] = useState<number[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [courseToUnenroll, setCourseToUnenroll] = useState<Course | null>(null);
 
-  const filteredCourses = courses.filter(course => {
-    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesCategory = !selectedCategory || course.category === selectedCategory;
-    const matchesDifficulty = !selectedDifficulty || course.difficulty === selectedDifficulty;
-    return matchesSearch && matchesCategory && matchesDifficulty;
-  });
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!user) return;
+
+      try {
+        const { data: enrollments, error } = await supabase
+          .from('course_enrollments')
+          .select('course_id')
+          .eq('user_id', user.id);
+
+        if (error) throw error;
+
+        const ids = enrollments?.map(e => parseInt(e.course_id)) || [];
+        setEnrolledCourseIds(ids);
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [user]);
+
+  const handleUnenroll = async (courseId: number) => {
+    if (!user) {
+      console.error('User not authenticated');
+      return;
+    }
+    
+    setEnrollingCourseId(courseId);
+    try {
+      const { error } = await supabase
+        .from('course_enrollments')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('course_id', courseId.toString());
+
+      if (error) {
+        console.error('Error details:', error);
+        throw error;
+      }
+
+      setEnrolledCourseIds(prev => prev.filter(id => id !== courseId));
+    } catch (error) {
+      console.error('Error unenrolling from course:', error);
+    } finally {
+      setEnrollingCourseId(null);
+      setCourseToUnenroll(null);
+    }
+  };
 
   const handleEnroll = async (courseId: number) => {
     if (!user) {
@@ -162,6 +210,14 @@ export default function BrowseCoursesPage() {
     }
   };
 
+  const filteredCourses = courses.filter(course => {
+    const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         course.description.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesCategory = !selectedCategory || course.category === selectedCategory;
+    const matchesDifficulty = !selectedDifficulty || course.difficulty === selectedDifficulty;
+    return matchesSearch && matchesCategory && matchesDifficulty;
+  });
+
   return (
     <main className="min-h-screen bg-[#ECF0F1]">
       <Navigation />
@@ -197,6 +253,7 @@ export default function BrowseCoursesPage() {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
                 value={selectedCategory || ''}
                 onChange={(e) => setSelectedCategory(e.target.value || null)}
+                disabled={loading}
               >
                 <option value="">All Categories</option>
                 {categories.map(category => (
@@ -211,6 +268,7 @@ export default function BrowseCoursesPage() {
                 className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
                 value={selectedDifficulty || ''}
                 onChange={(e) => setSelectedDifficulty(e.target.value || null)}
+                disabled={loading}
               >
                 <option value="">All Difficulties</option>
                 {difficulties.map(difficulty => (
@@ -221,77 +279,110 @@ export default function BrowseCoursesPage() {
           </div>
         </div>
 
-        {/* Course Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {filteredCourses.map((course) => {
-            const Icon = course.icon;
-            const isEnrolling = enrollingCourseId === course.id;
-
-            return (
-              <div 
-                key={course.id}
-                className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group"
-              >
-                <div className="flex items-start space-x-4">
-                  <div className="p-3 rounded-full bg-opacity-10" style={{ backgroundColor: `${course.categoryColor}20` }}>
-                    <Icon size={24} style={{ color: course.categoryColor }} />
-                  </div>
-                  
-                  <div className="flex-1">
-                    <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <span 
-                        className="text-sm font-medium px-3 py-1 rounded-full" 
-                        style={{ 
-                          backgroundColor: `${course.categoryColor}20`,
-                          color: course.categoryColor
-                        }}
-                      >
-                        {course.category}
-                      </span>
-                      <span className="text-sm text-gray-600 px-3 py-1 bg-gray-100 rounded-full">
-                        {course.difficulty}
-                      </span>
-                    </div>
-
-                    <h2 className="text-xl font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">
-                      {course.title}
-                    </h2>
-                    
-                    <p className="text-[#34495E] mt-2 line-clamp-2">
-                      {course.description}
-                    </p>
-                    
-                    <div className="mt-4 flex items-center justify-between">
-                      <div className="text-sm text-gray-600">
-                        <span className="mr-4">{course.duration}</span>
-                        <span>{course.enrolled.toLocaleString()} enrolled</span>
-                      </div>
-                      <button
-                        onClick={() => handleEnroll(course.id)}
-                        disabled={isEnrolling}
-                        className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
-                          isEnrolling 
-                            ? 'bg-gray-400 cursor-not-allowed'
-                            : 'bg-[#27AE60] hover:bg-[#219653]'
-                        }`}
-                      >
-                        <Plus size={20} />
-                        <span>{isEnrolling ? 'Enrolling...' : 'Enroll Now'}</span>
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-
-        {filteredCourses.length === 0 && (
+        {loading ? (
           <div className="text-center py-12">
-            <p className="text-[#34495E] text-lg">No courses found matching your criteria.</p>
+            <p className="text-[#34495E] text-lg">Loading courses...</p>
           </div>
+        ) : (
+          <>
+            {/* Course Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {filteredCourses.map((course) => {
+                const Icon = course.icon;
+                const isEnrolling = enrollingCourseId === course.id;
+
+                return (
+                  <div 
+                    key={course.id}
+                    className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group"
+                  >
+                    <div className="flex items-start space-x-4">
+                      <div className="p-3 rounded-full bg-opacity-10" style={{ backgroundColor: `${course.categoryColor}20` }}>
+                        <Icon size={24} style={{ color: course.categoryColor }} />
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center gap-2 mb-2">
+                          <span 
+                            className="text-sm font-medium px-3 py-1 rounded-full" 
+                            style={{ 
+                              backgroundColor: `${course.categoryColor}20`,
+                              color: course.categoryColor
+                            }}
+                          >
+                            {course.category}
+                          </span>
+                          <span className="text-sm text-gray-600 px-3 py-1 bg-gray-100 rounded-full">
+                            {course.difficulty}
+                          </span>
+                        </div>
+
+                        <h2 className="text-xl font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">
+                          {course.title}
+                        </h2>
+                        
+                        <p className="text-[#34495E] mt-2 line-clamp-2">
+                          {course.description}
+                        </p>
+                        
+                        <div className="mt-4 flex items-center justify-between">
+                          <div className="text-sm text-gray-600">
+                            <span className="mr-4">{course.duration}</span>
+                            <span>{course.enrolled.toLocaleString()} enrolled</span>
+                          </div>
+                          {enrolledCourseIds.includes(course.id) ? (
+                            <button
+                              onClick={() => setCourseToUnenroll(course)}
+                              disabled={isEnrolling}
+                              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                                isEnrolling 
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-red-500 hover:bg-red-600'
+                              }`}
+                            >
+                              <Trash2 size={20} />
+                              <span>{isEnrolling ? 'Processing...' : 'Unenroll'}</span>
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleEnroll(course.id)}
+                              disabled={isEnrolling}
+                              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                                isEnrolling 
+                                  ? 'bg-gray-400 cursor-not-allowed'
+                                  : 'bg-[#27AE60] hover:bg-[#219653]'
+                              }`}
+                            >
+                              <Plus size={20} />
+                              <span>{isEnrolling ? 'Enrolling...' : 'Enroll Now'}</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+
+            {filteredCourses.length === 0 && (
+              <div className="text-center py-12">
+                <p className="text-[#34495E] text-lg">No courses found matching your criteria.</p>
+              </div>
+            )}
+          </>
         )}
       </div>
+
+      <ConfirmDialog
+        isOpen={!!courseToUnenroll}
+        title="Unenroll from Course"
+        message={`Are you sure you want to unenroll from ${courseToUnenroll?.title}? Your progress will be lost.`}
+        confirmLabel="Unenroll"
+        cancelLabel="Cancel"
+        onConfirm={() => courseToUnenroll && handleUnenroll(courseToUnenroll.id)}
+        onCancel={() => setCourseToUnenroll(null)}
+      />
     </main>
   );
 } 

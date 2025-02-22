@@ -1,18 +1,67 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { SignInButton, SignedIn, SignedOut } from '@clerk/nextjs';
-import { Zap, PlusCircle, ChevronRight, ArrowRight } from 'lucide-react';
+import { Zap, PlusCircle, ChevronRight, ArrowRight, BookOpen } from 'lucide-react';
 import Navigation from './components/Navigation';
 import Link from 'next/link';
+import { useUser } from '@clerk/nextjs';
+import { supabase } from '@/lib/supabase';
 
 // Temporary mock data
-const recentCourses = [
-  { id: 1, title: 'Small Talk', progress: 60, lastAccessed: '2024-02-22' },
-  { id: 2, title: 'Negotiations', progress: 30, lastAccessed: '2024-02-21' },
-  { id: 3, title: 'Interviews', progress: 15, lastAccessed: '2024-02-20' },
+const coursesData = [
+  { id: 1, title: 'Small Talk', description: 'Learn how to have a conversation with anyone', progress: 60, lastAccessed: '2024-02-22' },
+  { id: 2, title: 'Negotiations', description: 'Learn how to negotiate effectively', progress: 30, lastAccessed: '2024-02-21' },
+  { id: 3, title: 'Interviews', description: 'Learn how to prepare for and ace job interviews', progress: 15, lastAccessed: '2024-02-20' },
 ];
 
+type Course = {
+  id: number;
+  title: string;
+  description: string;
+  progress: number;
+  lastAccessed: string;
+};
+
 export default function Home() {
+  const { user } = useUser();
+  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchEnrolledCourses = async () => {
+      if (!user) return;
+
+      try {
+        const { data: enrollments, error } = await supabase
+          .from('course_enrollments')
+          .select('course_id, last_accessed_at')
+          .eq('user_id', user.id)
+          .order('last_accessed_at', { ascending: false })
+          .limit(3);
+
+        if (error) throw error;
+
+        // Get the course details from our static data
+        const courses = enrollments.map(enrollment => ({
+          id: parseInt(enrollment.course_id),
+          title: coursesData.find(c => c.id === parseInt(enrollment.course_id))?.title || 'Unknown Course',
+          description: coursesData.find(c => c.id === parseInt(enrollment.course_id))?.description || '',
+          progress: 0, // We'll implement proper progress tracking later
+          lastAccessed: new Date(enrollment.last_accessed_at).toLocaleDateString(),
+        }));
+
+        setEnrolledCourses(courses);
+      } catch (error) {
+        console.error('Error fetching enrolled courses:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchEnrolledCourses();
+  }, [user]);
+
   return (
     <>
       <SignedIn>
@@ -22,10 +71,10 @@ export default function Home() {
           <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
             <h1 className="text-3xl font-bold text-[#2C3E50] mb-8">Welcome to Oratoria</h1>
             
-            {/* Continue Courses Section */}
+            {/* Continue Training Section */}
             <section className="bg-white rounded-xl p-6 shadow-sm mb-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold text-[#2C3E50]">Continue Learning</h2>
+                <h2 className="text-xl font-semibold text-[#2C3E50]">Continue Training</h2>
                 <Link 
                   href="/courses" 
                   className="flex items-center text-[#27AE60] hover:text-[#219653] transition-colors"
@@ -35,30 +84,54 @@ export default function Home() {
                 </Link>
               </div>
               
-              <div className="space-y-4">
-                {recentCourses.map((course) => (
-                  <div 
-                    key={course.id}
-                    className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
-                  >
-                    <div>
-                      <h3 className="font-medium text-[#34495E]">{course.title}</h3>
-                      <p className="text-sm text-gray-500">
-                        Last accessed: {course.lastAccessed}
-                      </p>
-                    </div>
-                    <div className="flex items-center">
-                      <div className="w-32 h-2 bg-gray-200 rounded-full mr-3">
-                        <div 
-                          className="h-full bg-[#27AE60] rounded-full"
-                          style={{ width: `${course.progress}%` }}
-                        />
-                      </div>
-                      <span className="text-sm text-gray-600">{course.progress}%</span>
-                    </div>
+              {loading ? (
+                <div className="text-center py-4">
+                  <p className="text-[#34495E]">Loading your courses...</p>
+                </div>
+              ) : enrolledCourses.length === 0 ? (
+                <div className="text-center py-8">
+                  <div className="mb-4">
+                    <BookOpen size={48} className="text-gray-400 mx-auto" />
                   </div>
-                ))}
-              </div>
+                  <p className="text-[#34495E] mb-4">
+                    You haven&apos;t enrolled in any courses yet.
+                  </p>
+                  <Link 
+                    href="/courses/browse"
+                    className="inline-block bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#219653] transition-colors"
+                  >
+                    Browse Courses
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {enrolledCourses.map((course) => (
+                    <Link
+                      key={course.id}
+                      href={`/courses/${course.id}`}
+                    >
+                      <div 
+                        className="flex items-center justify-between p-4 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                      >
+                        <div>
+                          <h3 className="font-medium text-[#34495E]">{course.title}</h3>
+                          <p className="text-sm text-gray-500">
+                            Last accessed: {course.lastAccessed}
+                          </p>
+                        </div>
+                        <div className="flex items-center">
+                          <div className="w-32 h-2 bg-gray-200 rounded-full">
+                            <div 
+                              className="h-full bg-[#27AE60] rounded-full"
+                              style={{ width: `${course.progress}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  ))}
+                </div>
+              )}
             </section>
             
             {/* Quick Actions Section */}

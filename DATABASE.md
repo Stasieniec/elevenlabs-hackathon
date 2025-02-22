@@ -1,7 +1,7 @@
 # Oratoria Database Structure
 
 ## Overview
-Oratoria uses Supabase as its database provider. The database is designed to store only user-specific data, while course content is maintained in the codebase for better version control and maintainability.
+Oratoria uses Supabase as its database provider. The database is designed to store user-specific data, while course content is maintained in the codebase for better version control and maintainability.
 
 ## Tables
 
@@ -12,7 +12,7 @@ Stores user preferences and language settings.
 ```sql
 CREATE TABLE user_preferences (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
+  user_id TEXT NOT NULL,
   native_languages TEXT[] NOT NULL DEFAULT '{}',
   social_languages TEXT[] NOT NULL DEFAULT '{}',
   professional_languages TEXT[] NOT NULL DEFAULT '{}',
@@ -20,9 +20,8 @@ CREATE TABLE user_preferences (
   desired_social_style TEXT,
   current_professional_style TEXT,
   current_social_style TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-  UNIQUE(user_id)
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
 );
 ```
 
@@ -46,7 +45,7 @@ Tracks user progress through situations and stores feedback.
 ```sql
 CREATE TABLE user_progress (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  user_id UUID NOT NULL,
+  user_id TEXT NOT NULL,
   situation_id TEXT NOT NULL,
   completed BOOLEAN DEFAULT FALSE,
   score INTEGER,
@@ -67,43 +66,152 @@ CREATE TABLE user_progress (
 - `created_at`: Timestamp of record creation
 - `updated_at`: Timestamp of last update
 
+### course_enrollments
+
+Stores user course enrollments and tracks their access.
+
+```sql
+CREATE TABLE course_enrollments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  course_id TEXT NOT NULL,
+  enrolled_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  last_accessed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  UNIQUE(user_id, course_id)
+);
+```
+
+#### Fields:
+- `id`: Unique identifier for the enrollment record
+- `user_id`: References the Clerk user ID
+- `course_id`: References the course ID from the static course data
+- `enrolled_at`: Timestamp when the user enrolled in the course
+- `last_accessed_at`: Timestamp of last course access
+- `UNIQUE(user_id, course_id)`: Ensures a user can only enroll once in a course
+
+### user_goals
+
+Tracks user's learning goals and their progress.
+
+```sql
+CREATE TABLE user_goals (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  goal_type TEXT NOT NULL,
+  goal_description TEXT NOT NULL,
+  priority INTEGER,
+  achieved BOOLEAN DEFAULT false,
+  target_date TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+);
+```
+
+### conversation_performances
+
+Stores detailed metrics and feedback from conversation practice sessions.
+
+```sql
+CREATE TABLE conversation_performances (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  course_id TEXT NOT NULL,
+  chapter_id TEXT NOT NULL,
+  situation_id TEXT NOT NULL,
+  completed_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  duration_seconds INTEGER,
+  clarity_score INTEGER,
+  confidence_score INTEGER,
+  appropriateness_score INTEGER,
+  effectiveness_score INTEGER,
+  strong_points TEXT[],
+  weak_points TEXT[],
+  ai_perception TEXT,
+  improvement_suggestions TEXT,
+  conversation_summary TEXT,
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+);
+```
+
+### chapter_progress
+
+Tracks user progress through course chapters.
+
+```sql
+CREATE TABLE chapter_progress (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id TEXT NOT NULL,
+  course_id TEXT NOT NULL,
+  chapter_id TEXT NOT NULL,
+  completed BOOLEAN DEFAULT false,
+  completion_percentage INTEGER DEFAULT 0,
+  average_score INTEGER,
+  key_learnings TEXT[],
+  areas_for_improvement TEXT[],
+  created_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now()),
+  updated_at TIMESTAMP WITH TIME ZONE NOT NULL DEFAULT timezone('utc'::text, now())
+);
+```
+
 ## Row Level Security (RLS)
 
-Both tables implement Row Level Security to ensure users can only access their own data.
+All tables implement Row Level Security to ensure users can only access their own data.
 
 ### user_preferences Policies:
 ```sql
+ALTER TABLE user_preferences ENABLE ROW LEVEL SECURITY;
+
 CREATE POLICY "Users can view their own preferences" 
   ON user_preferences FOR SELECT 
-  USING (auth.uid()::uuid = user_id);
+  USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can insert their own preferences" 
   ON user_preferences FOR INSERT 
-  WITH CHECK (auth.uid()::uuid = user_id);
+  WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update their own preferences" 
   ON user_preferences FOR UPDATE 
-  USING (auth.uid()::uuid = user_id);
+  USING (auth.uid()::text = user_id);
 ```
 
 ### user_progress Policies:
 ```sql
+ALTER TABLE user_progress ENABLE ROW LEVEL SECURITY;
+
 CREATE POLICY "Users can view their own progress" 
   ON user_progress FOR SELECT 
-  USING (auth.uid()::uuid = user_id);
+  USING (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can insert their own progress" 
   ON user_progress FOR INSERT 
-  WITH CHECK (auth.uid()::uuid = user_id);
+  WITH CHECK (auth.uid()::text = user_id);
 
 CREATE POLICY "Users can update their own progress" 
   ON user_progress FOR UPDATE 
-  USING (auth.uid()::uuid = user_id);
+  USING (auth.uid()::text = user_id);
+```
+
+### course_enrollments Policies:
+```sql
+ALTER TABLE course_enrollments ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Users can view their own enrollments" 
+  ON course_enrollments FOR SELECT 
+  USING (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can enroll in courses" 
+  ON course_enrollments FOR INSERT 
+  WITH CHECK (auth.uid()::text = user_id);
+
+CREATE POLICY "Users can unenroll from courses" 
+  ON course_enrollments FOR DELETE 
+  USING (auth.uid()::text = user_id);
 ```
 
 ## Automatic Timestamps
 
-Both tables implement automatic `updated_at` timestamp updates using a trigger:
+Tables with `updated_at` fields have automatic timestamp updates through triggers:
 
 ```sql
 CREATE OR REPLACE FUNCTION update_updated_at_column()
@@ -114,24 +222,35 @@ BEGIN
 END;
 $$ language 'plpgsql';
 
-CREATE TRIGGER update_user_preferences_updated_at
-    BEFORE UPDATE ON user_preferences
-    FOR EACH ROW
-    EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_user_progress_updated_at
-    BEFORE UPDATE ON user_progress
+CREATE TRIGGER update_timestamp
+    BEFORE UPDATE ON [table_name]
     FOR EACH ROW
     EXECUTE FUNCTION update_updated_at_column();
 ```
 
+The course_enrollments table implements automatic `last_accessed_at` timestamp updates:
+
+```sql
+CREATE OR REPLACE FUNCTION update_last_accessed_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    NEW.last_accessed_at = NOW();
+    RETURN NEW;
+END;
+$$ language 'plpgsql';
+
+CREATE TRIGGER update_course_enrollment_last_accessed
+    BEFORE UPDATE ON course_enrollments
+    FOR EACH ROW
+    EXECUTE FUNCTION update_last_accessed_at();
+```
+
 ## Course Content
 
-Course content (courses, chapters, situations) is stored in the codebase under `src/lib/courses.ts` as static data. This includes:
-- Course information
-- Chapter structure
-- Situation details
-- AI persona configurations
+Course content (courses, chapters, situations) is stored in the codebase under `src/app/courses/browse/page.tsx` as static data. This includes:
+- Course information (title, description, category, difficulty)
+- Duration and enrollment statistics
+- Visual elements (icons, colors)
 
 This approach allows for:
 - Version control of course content

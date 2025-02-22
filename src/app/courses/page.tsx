@@ -217,9 +217,6 @@ export default function CoursesPage() {
                             {course.title}
                           </h2>
                         </div>
-                        <span className="text-lg font-semibold text-[#27AE60]">
-                          {course.progress}%
-                        </span>
                       </div>
                       
                       <p className="text-[#34495E] mt-2">
