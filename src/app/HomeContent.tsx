@@ -13,15 +13,13 @@ function ClientOnly({ children }: { children: React.ReactNode }) {
     setMounted(true);
   }, []);
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-[#2C3E50] flex items-center justify-center">
-        <div className="text-white text-2xl">Loading...</div>
-      </div>
-    );
-  }
-
-  return <>{children}</>;
+  return mounted ? (
+    <>{children}</>
+  ) : (
+    <div className="min-h-screen bg-[#2C3E50] flex items-center justify-center" suppressHydrationWarning>
+      <div className="text-white text-2xl" suppressHydrationWarning>Loading...</div>
+    </div>
+  );
 }
 
 // Separate the scroll button into its own client component
