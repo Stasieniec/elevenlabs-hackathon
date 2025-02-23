@@ -1,18 +1,42 @@
 import { courses } from '@/lib/courses';
 import { notFound } from 'next/navigation';
+import { Metadata } from 'next';
 import CourseDetail from './CourseDetail';
+import ClientOnly from '@/app/components/ClientOnly';
 
-// @ts-expect-error - Next.js type issue with params in page components
+type Props = {
+  params: { courseId: string };
+};
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const course = courses.find(c => c.id === params.courseId);
+  
+  if (!course) {
+    return {
+      title: 'Course Not Found',
+    };
+  }
+
+  return {
+    title: course.title,
+    description: course.description,
+  };
+}
+
 export default async function CourseDetailPage({
   params,
-}: {
-  params: { courseId: string };
-}) {
+}: Props) {
   const course = courses.find(c => c.id === params.courseId);
   
   if (!course) {
     notFound();
   }
 
-  return <CourseDetail course={course} />;
+  return (
+    <div className="min-h-screen bg-[#ECF0F1]">
+      <ClientOnly>
+        <CourseDetail course={course} />
+      </ClientOnly>
+    </div>
+  );
 } 

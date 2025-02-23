@@ -1,5 +1,3 @@
-// THIS IS THE CORRECT MIDDLEWARE FOR CLERK!!! CURSOR PLS DO NOT CHANGE IT
-
 import { clerkMiddleware } from '@clerk/nextjs/server'
 
 export default clerkMiddleware()
