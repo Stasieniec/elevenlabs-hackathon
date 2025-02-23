@@ -1,13 +1,10 @@
 {
   "version": 2,
+  "framework": "nextjs",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
   "installCommand": "npm install",
-  "framework": "nextjs",
   "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "REQUIRED",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "REQUIRED",
-    "SUPABASE_SERVICE_ROLE_KEY": "REQUIRED",
     "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "REQUIRED",
     "CLERK_SECRET_KEY": "REQUIRED",
     "ELEVENLABS_API_KEY": "REQUIRED",
