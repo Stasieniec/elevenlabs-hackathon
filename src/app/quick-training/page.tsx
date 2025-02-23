@@ -17,7 +17,7 @@ export default function QuickTraining() {
         {/* Placeholder content */}
         <div className="bg-white rounded-xl p-8 shadow-sm">
           <p className="text-[#34495E] text-lg">
-            Quick Training feature is coming soon! Here you'll be able to practice with random conversation scenarios.
+            Quick Training feature is coming soon! Here you&apos;ll be able to practice with random conversation scenarios.
           </p>
         </div>
       </div>
