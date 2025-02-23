@@ -210,7 +210,7 @@ export default function HomeContent() {
                       </button>
 
                       <Link 
-                        href="https://github.com/wasil-dilawari/elevenlabs-hackathon"
+                        href="https://github.com/Stasieniec/elevenlabs-hackathon"
                         target="_blank"
                         className="bg-neutral text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-neutral/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg w-full h-full"
                       >
