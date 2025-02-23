@@ -183,7 +183,7 @@ export default function ConversationInterface({
                 )}
                 {conversation.status === 'disconnected' && (
                   <p className="text-center text-gray-500 mt-4">
-                    Click "Start Conversation" to begin practicing
+                    Click &ldquo;Start Conversation&rdquo; to begin practicing
                   </p>
                 )}
               </div>
