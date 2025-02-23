@@ -206,7 +206,7 @@ export default function HomeContent() {
                         className="btn btn-secondary w-full h-full px-6 py-4 text-lg inline-flex flex-col items-center justify-center gap-2 shadow-lg transform hover:scale-105"
                       >
                         <span>See Trailer</span>
-                        <span className="text-sm opacity-90">Watch our over-the-top AI-generated masterpiece</span>
+                        <span className="text-sm opacity-90">Watch the masterpiece of a trailer I made</span>
                       </button>
 
                       <Link 
@@ -239,7 +239,7 @@ export default function HomeContent() {
                   />
                   <div className="text-center mt-8">
                     <h2 className="text-2xl md:text-3xl font-bold text-neutral-dark mb-4">
-                      The Most Epic AI Training Video Ever Made
+                      The Most Epic AI-Agent Video Ever Made
                     </h2>
                     <p className="text-neutral text-lg">
                       Watch this overly dramatic video. Fun fact: it was generated entirely by AI, the only thing I did was writing the script, editing, and logo design!
