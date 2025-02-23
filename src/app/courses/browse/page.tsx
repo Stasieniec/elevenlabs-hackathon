@@ -6,19 +6,16 @@ import { BookOpen, Search, Plus, Trash2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import ConfirmDialog from '../../components/ConfirmDialog';
-import { Course as CourseType, courses } from '@/lib/courses';
+import { Course, CourseCategory } from '@/lib/types/courses';
+import { courses } from '@/lib/courses/index';
 
-type Course = CourseType;
-
-const categories = Array.from(new Set(courses.map(course => course.category)));
-const difficulties = ['Beginner', 'Intermediate', 'Advanced'];
+const categories = Array.from(new Set(courses.map((course: Course) => course.category))) as CourseCategory[];
 
 export default function BrowseCoursesPage() {
   const { user } = useUser();
   const supabase = useSupabaseAuth();
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<CourseCategory | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
@@ -68,7 +65,7 @@ export default function BrowseCoursesPage() {
       setError(null);
 
       // Get the static course data which contains chapters and situations
-      const staticCourse = courses.find(c => c.id === courseId);
+      const staticCourse = courses.find((c: Course) => c.id === courseId);
       if (!staticCourse) {
         throw new Error('Course not found in static data');
       }
@@ -143,7 +140,7 @@ export default function BrowseCoursesPage() {
       }
 
       // Check if course is enrollable
-      const course = courses.find(c => c.id === courseId);
+      const course = courses.find((c: Course) => c.id === courseId);
       if (!course) {
         throw new Error('Course not found');
       }
@@ -167,41 +164,42 @@ export default function BrowseCoursesPage() {
 
       if (enrollmentError) throw enrollmentError;
 
-      // 2. Initialize chapter progress for each chapter
-      for (const chapter of course.chapters) {
-        const { error: chapterError } = await supabase
-          .from('chapter_progress')
-          .insert([
-            {
-              user_id: user.id,
-              course_id: courseId,
-              chapter_id: chapter.id,
-              completed: false,
-              completion_percentage: 0,
-              average_score: 0,
-              key_learnings: [],
-              areas_for_improvement: []
-            }
-          ]);
-        
-        if (chapterError) throw chapterError;
-
-        // 3. Initialize situation progress for each situation
-        for (const situation of chapter.situations) {
-          const { error: progressError } = await supabase
-            .from('user_progress')
+      try {
+        // 2. Initialize chapter progress for each chapter
+        for (const chapter of course.chapters) {
+          await supabase
+            .from('chapter_progress')
             .insert([
               {
                 user_id: user.id,
-                situation_id: situation.id,
+                course_id: courseId,
+                chapter_id: chapter.id,
                 completed: false,
-                score: 0,
-                feedback: null
+                completion_percentage: 0,
+                average_score: 0,
+                key_learnings: [],
+                areas_for_improvement: []
               }
             ]);
-          
-          if (progressError) throw progressError;
+
+          // 3. Initialize situation progress for each situation
+          for (const situation of chapter.situations) {
+            await supabase
+              .from('user_progress')
+              .insert([
+                {
+                  user_id: user.id,
+                  situation_id: situation.id,
+                  completed: false,
+                  score: 0,
+                  feedback: null
+                }
+              ]);
+          }
         }
+      } catch (progressError) {
+        // Log the error but don't throw it - the user is still enrolled
+        console.error('Error initializing progress:', progressError);
       }
 
       // Show success message or redirect
@@ -214,12 +212,11 @@ export default function BrowseCoursesPage() {
     }
   };
 
-  const filteredCourses = courses.filter(course => {
+  const filteredCourses = courses.filter((course: Course) => {
     const matchesSearch = course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          course.description.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesCategory = !selectedCategory || course.category === selectedCategory;
-    const matchesDifficulty = !selectedDifficulty || course.difficulty === selectedDifficulty;
-    return matchesSearch && matchesCategory && matchesDifficulty;
+    return matchesSearch && matchesCategory;
   });
 
   if (!user) {
@@ -293,27 +290,12 @@ export default function BrowseCoursesPage() {
                 <select
                   className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
                   value={selectedCategory || ''}
-                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  onChange={(e) => setSelectedCategory((e.target.value || null) as CourseCategory | null)}
                   disabled={loading}
                 >
                   <option value="">All Categories</option>
                   {categories.map(category => (
                     <option key={category} value={category}>{category}</option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Difficulty Filter */}
-              <div className="flex-1">
-                <select
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
-                  value={selectedDifficulty || ''}
-                  onChange={(e) => setSelectedDifficulty(e.target.value || null)}
-                  disabled={loading}
-                >
-                  <option value="">All Difficulties</option>
-                  {difficulties.map(difficulty => (
-                    <option key={difficulty} value={difficulty}>{difficulty}</option>
                   ))}
                 </select>
               </div>
@@ -330,7 +312,7 @@ export default function BrowseCoursesPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 {filteredCourses.map((course) => {
                   const Icon = course.icon;
-                  const isEnrolling = enrollingCourseId === course.id.toString();
+                  const isEnrolling = enrollingCourseId === course.id;
                   const isEnrolled = enrolledCourseIds.includes(course.id);
 
                   return (
@@ -353,9 +335,6 @@ export default function BrowseCoursesPage() {
                               }}
                             >
                               {course.category}
-                            </span>
-                            <span className="text-sm text-gray-600 px-3 py-1 bg-gray-100 rounded-full">
-                              {course.difficulty}
                             </span>
                           </div>
 
@@ -428,7 +407,7 @@ export default function BrowseCoursesPage() {
         message={`Are you sure you want to unenroll from ${courseToUnenroll?.title}? Your progress will be lost.`}
         confirmLabel="Unenroll"
         cancelLabel="Cancel"
-        onConfirm={() => courseToUnenroll && handleUnenroll(courseToUnenroll.id.toString())}
+        onConfirm={() => courseToUnenroll && handleUnenroll(courseToUnenroll.id)}
         onCancel={() => setCourseToUnenroll(null)}
       />
     </main>

@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
-import { Course } from '@/lib/courses';
+import { Course } from '@/lib/types/courses';
 import { useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { Users, Briefcase, MessageSquare } from 'lucide-react';

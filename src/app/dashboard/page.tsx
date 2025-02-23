@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Target, BookOpen, MessageSquare, Loader2 } from 'lucide-react';
-import { courses } from '@/lib/courses';
+import { courses } from '@/lib/courses/index';
 import Navigation from '../components/Navigation';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -208,10 +208,6 @@ export default function DashboardPage() {
                       <span className="flex items-center gap-2">
                         <BookOpen className="w-4 h-4" />
                         {course.duration}
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <Target className="w-4 h-4" />
-                        {course.difficulty}
                       </span>
                     </div>
                   </Link>

@@ -8,9 +8,10 @@ import type { LucideIcon } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { courses } from '@/lib/courses';
+import { Course } from '@/lib/types/courses';
+import { courses } from '@/lib/courses/index';
 
-type Course = {
+type EnrolledCourse = {
   id: string;
   title: string;
   description: string;
@@ -25,10 +26,10 @@ type Course = {
 export default function CoursesPage() {
   const { user } = useUser();
   const supabase = useSupabaseAuth();
-  const [enrolledCourses, setEnrolledCourses] = useState<Course[]>([]);
+  const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [courseToUnenroll, setCourseToUnenroll] = useState<Course | null>(null);
+  const [courseToUnenroll, setCourseToUnenroll] = useState<EnrolledCourse | null>(null);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
@@ -61,8 +62,8 @@ export default function CoursesPage() {
             icon: course.icon,
             category: course.category,
             categoryColor: course.categoryColor,
-          };
-        }).filter((course): course is Course => course !== null) || [];
+          } as EnrolledCourse;
+        }).filter((course): course is EnrolledCourse => course !== null) || [];
 
         setEnrolledCourses(userCourses);
       } catch (err) {
