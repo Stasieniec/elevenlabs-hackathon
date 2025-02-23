@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import { ArrowLeft, MessageCircle, Target, UserCircle2, Volume2 } from 'lucide-react';
 import Link from 'next/link';
 import { QuickTrainingSituation } from '@/lib/types/situations';

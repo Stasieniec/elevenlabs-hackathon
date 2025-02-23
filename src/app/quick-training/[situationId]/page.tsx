@@ -86,7 +86,7 @@ export default function QuickTrainingSession() {
     if (conversation.status === 'disconnected' && conversationState === 'conversation') {
       handleEndPractice();
     }
-  }, [conversation.status]);
+  }, [conversation.status, conversationState, handleEndPractice]);
 
   if (!situation) {
     return (
