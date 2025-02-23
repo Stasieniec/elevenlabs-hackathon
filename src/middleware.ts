@@ -27,38 +27,59 @@ export default clerkMiddleware(async (auth, request) => {
 
   // Add CORS and security headers
   const response = NextResponse.next();
-  
+
   // Set CSP headers according to Clerk's requirements
-  // https://clerk.com/docs/security/clerk-csp
   response.headers.set(
     'Content-Security-Policy',
     [
+      // Allow resources from same origin by default
       "default-src 'self'",
-      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://clerk.oratoria.me https://*.clerk.com https://challenges.cloudflare.com",
-      "connect-src 'self' https://clerk.oratoria.me https://*.clerk.com wss://*.clerk.com https://o449981.ingest.us.sentry.io",
-      "img-src 'self' data: https://img.clerk.com https://*.clerk.com",
-      "style-src 'self' 'unsafe-inline'",
-      "frame-src 'self' https://clerk.oratoria.me https://*.clerk.com https://challenges.cloudflare.com",
+      
+      // Scripts - allow Clerk domains and necessary third-party scripts
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://clerk.oratoria.me https://accounts.oratoria.me https://challenges.cloudflare.com",
+      
+      // Connections - allow Clerk domains, Supabase, and other necessary services
+      "connect-src 'self' https://*.clerk.com https://clerk.oratoria.me https://accounts.oratoria.me wss://*.clerk.com https://*.supabase.co https://o449981.ingest.us.sentry.io",
+      
+      // Images - allow Clerk images and data URIs
+      "img-src 'self' data: https://img.clerk.com https://*.clerk.com https://clerk.oratoria.me https://accounts.oratoria.me",
+      
+      // Styles - allow inline styles needed by Clerk
+      "style-src 'self' 'unsafe-inline' https://*.clerk.com https://clerk.oratoria.me https://accounts.oratoria.me",
+      
+      // Frames - allow Clerk domains and Cloudflare challenges
+      "frame-src 'self' https://*.clerk.com https://clerk.oratoria.me https://accounts.oratoria.me https://challenges.cloudflare.com",
+      
+      // Workers and other resources
       "worker-src 'self' blob:",
-      "form-action 'self'",
       "font-src 'self' data:",
-      "manifest-src 'self'"
+      "media-src 'self'",
+      "manifest-src 'self'",
+      
+      // Form submissions
+      "form-action 'self' https://*.clerk.com https://clerk.oratoria.me https://accounts.oratoria.me"
     ].join('; ')
   );
 
-  // Set CORS headers - dynamically handle both domains
-  const allowedOrigins = ['https://oratoria.me', 'https://accounts.oratoria.me', 'https://clerk.oratoria.me'];
+  // Set CORS headers - allow all Clerk and app domains
+  const allowedOrigins = [
+    'https://oratoria.me',
+    'https://accounts.oratoria.me',
+    'https://clerk.oratoria.me',
+    'https://img.clerk.com'
+  ];
   
   // Handle CORS preflight
   if (request.method === 'OPTIONS') {
     const preflightResponse = new NextResponse(null, { status: 204 });
     if (origin && allowedOrigins.includes(origin)) {
       preflightResponse.headers.set('Access-Control-Allow-Origin', origin);
+      preflightResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+      preflightResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Clerk-CSRF-Token');
+      preflightResponse.headers.set('Access-Control-Allow-Credentials', 'true');
+      preflightResponse.headers.set('Access-Control-Max-Age', '86400');
+      preflightResponse.headers.set('Vary', 'Origin');
     }
-    preflightResponse.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    preflightResponse.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, X-Clerk-CSRF-Token');
-    preflightResponse.headers.set('Access-Control-Allow-Credentials', 'true');
-    preflightResponse.headers.set('Access-Control-Max-Age', '86400');
     return preflightResponse;
   }
 
@@ -66,13 +87,20 @@ export default clerkMiddleware(async (auth, request) => {
   if (origin && allowedOrigins.includes(origin)) {
     response.headers.set('Access-Control-Allow-Origin', origin);
     response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Vary', 'Origin');
   }
 
   // If the user isn't signed in and the route is private, redirect to Account Portal
   if (!userId && !isPublicRoute(request)) {
     const redirectUrl = new URL('/sign-in', 'https://accounts.oratoria.me');
     redirectUrl.searchParams.set('redirect_url', request.url);
-    return NextResponse.redirect(redirectUrl);
+    // Add no-cors mode to the redirect
+    return NextResponse.redirect(redirectUrl.toString(), {
+      headers: {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+      }
+    });
   }
 
   // If the user is signed in and trying to access auth pages, redirect to dashboard
