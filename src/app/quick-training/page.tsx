@@ -44,7 +44,7 @@ export default function QuickTraining() {
 
         <div className="mt-8 text-center">
           <p className="text-[#7F8C8D] text-sm">
-            More scenarios coming soon! We're carefully crafting each situation to provide the best practice experience.
+            More scenarios coming soon! We&apos;re carefully crafting each situation to provide the best practice experience.
           </p>
         </div>
       </div>

@@ -1,36 +1,29 @@
-import { QuickTrainingSituation, SituationTemplate } from '../types/situations';
-import { professionalSituations } from './professional';
+import { QuickTrainingSituation, Difficulty } from '../types/situations';
 import { socialSituations } from './social';
-import { familySituations } from './family';
-import { identitySituations } from './identity';
-import { funSituations } from './fun';
 
-export const allQuickTrainingSituations: QuickTrainingSituation[] = [
-  ...professionalSituations,
-  ...socialSituations,
-  ...familySituations,
-  ...identitySituations,
-  ...funSituations,
-];
+// For now, we only have social situations implemented
+const emptySituations: QuickTrainingSituation[] = [];
+
+export const allQuickTrainingSituations = socialSituations;
 
 export const situationsByCategory = {
-  professional: professionalSituations,
+  professional: emptySituations,
   social: socialSituations,
-  family: familySituations,
-  identity: identitySituations,
-  fun: funSituations,
+  family: emptySituations,
+  identity: emptySituations,
+  fun: emptySituations,
 };
 
 export function getSituationById(id: string): QuickTrainingSituation | undefined {
-  return allQuickTrainingSituations.find(s => s.id === id);
+  return allQuickTrainingSituations.find((s: QuickTrainingSituation) => s.id === id);
 }
 
-export function getSituationsByDifficulty(difficulty: 'easy' | 'medium' | 'hard'): QuickTrainingSituation[] {
-  return allQuickTrainingSituations.filter(s => s.difficulty === difficulty);
+export function getSituationsByDifficulty(difficulty: Difficulty): QuickTrainingSituation[] {
+  return allQuickTrainingSituations.filter((s: QuickTrainingSituation) => s.difficulty === difficulty);
 }
 
 export function getSituationsByTags(tags: string[]): QuickTrainingSituation[] {
-  return allQuickTrainingSituations.filter(s => 
+  return allQuickTrainingSituations.filter((s: QuickTrainingSituation) => 
     tags.some(tag => s.tags.includes(tag.toLowerCase()))
   );
 } 
