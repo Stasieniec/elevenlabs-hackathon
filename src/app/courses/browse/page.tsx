@@ -288,14 +288,16 @@ export default function BrowseCoursesPage() {
               {/* Category Filter */}
               <div className="flex-1">
                 <select
-                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent text-[#2C3E50]"
                   value={selectedCategory || ''}
                   onChange={(e) => setSelectedCategory((e.target.value || null) as CourseCategory | null)}
                   disabled={loading}
                 >
                   <option value="">All Categories</option>
                   {categories.map(category => (
-                    <option key={category} value={category}>{category}</option>
+                    <option key={category} value={category} className="text-[#2C3E50]">
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </option>
                   ))}
                 </select>
               </div>

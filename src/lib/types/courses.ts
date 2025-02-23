@@ -20,7 +20,6 @@ export interface Course {
   icon: LucideIcon;
   chapters: CourseChapter[];
   isEnrollable: boolean;
-  duration: string;
 }
 
 export interface ChapterProgress {

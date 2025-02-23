@@ -1,52 +1,8 @@
 import { Course } from '../types/courses';
 import { Shield } from 'lucide-react';
-import { processSituationTemplate } from '../situations/templateProcessor';
 import { healthSituations } from '../situations/health';
-
-// Placeholder situations for other chapters - to be implemented
-const placeholderMentalHealth1 = processSituationTemplate({
-  id: "mental-health-1",
-  title: "Mental Health Discussion 1",
-  description: "Placeholder for first mental health situation",
-  icon: "brain",
-  context: "Placeholder context",
-  userGoal: "Placeholder goal",
-  aiRole: "Placeholder role",
-  category: "mental-health"
-}, undefined, "medium");
-
-const placeholderMentalHealth2 = processSituationTemplate({
-  id: "mental-health-2",
-  title: "Mental Health Discussion 2",
-  description: "Placeholder for second mental health situation",
-  icon: "brain",
-  context: "Placeholder context",
-  userGoal: "Placeholder goal",
-  aiRole: "Placeholder role",
-  category: "mental-health"
-}, undefined, "medium");
-
-const placeholderAwkward1 = processSituationTemplate({
-  id: "awkward-1",
-  title: "Awkward Situation 1",
-  description: "Placeholder for first awkward situation",
-  icon: "frown",
-  context: "Placeholder context",
-  userGoal: "Placeholder goal",
-  aiRole: "Placeholder role",
-  category: "social"
-}, undefined, "medium");
-
-const placeholderAwkward2 = processSituationTemplate({
-  id: "awkward-2",
-  title: "Awkward Situation 2",
-  description: "Placeholder for second awkward situation",
-  icon: "frown",
-  context: "Placeholder context",
-  userGoal: "Placeholder goal",
-  aiRole: "Placeholder role",
-  category: "social"
-}, undefined, "medium");
+import { mentalSituations } from '../situations/mental';
+import { awkwardSituations } from '../situations/awkward';
 
 export const breakingTaboosCourse: Course = {
   id: "breaking-taboos",
@@ -56,13 +12,12 @@ export const breakingTaboosCourse: Course = {
   categoryColor: "#9B59B6",
   icon: Shield,
   isEnrollable: true,
-  duration: "3-4 hours",
   chapters: [
     {
       id: "mental-wellbeing",
       title: "Mental Wellbeing",
       description: "Learn to navigate conversations about mental health with sensitivity and understanding.",
-      situations: [placeholderMentalHealth1, placeholderMentalHealth2],
+      situations: mentalSituations,
       order: 1
     },
     {
@@ -76,7 +31,7 @@ export const breakingTaboosCourse: Course = {
       id: "awkward-problems",
       title: "Awkward Problems",
       description: "Handle uncomfortable social situations with grace and confidence.",
-      situations: [placeholderAwkward1, placeholderAwkward2],
+      situations: awkwardSituations,
       order: 3
     }
   ]

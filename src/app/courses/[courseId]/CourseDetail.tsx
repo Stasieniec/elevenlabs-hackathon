@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { Course } from '@/lib/types/courses';
 import { useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { Users, Briefcase, MessageSquare, ArrowLeft, BookOpen, Target, Clock } from 'lucide-react';
+import { Users, Briefcase, MessageCircle, ArrowLeft, BookOpen, Target, Clock } from 'lucide-react';
 import Navigation from '@/app/components/Navigation';
 
 // Create a type for the serialized course
@@ -28,7 +28,7 @@ export default function CourseDetail({ course }: Props) {
   const Icon = {
     Users,
     Briefcase,
-    MessageSquare
+    MessageCircle
   }[course.icon] || Users;
 
   useEffect(() => {
@@ -134,10 +134,6 @@ export default function CourseDetail({ course }: Props) {
               <div className="flex items-center text-[#7F8C8D]">
                 <Target className="w-5 h-5 mr-2" />
                 <span>{course.chapters.reduce((acc, chapter) => acc + chapter.situations.length, 0)} Situations</span>
-              </div>
-              <div className="flex items-center text-[#7F8C8D]">
-                <Clock className="w-5 h-5 mr-2" />
-                <span>{course.duration}</span>
               </div>
             </div>
           </div>
