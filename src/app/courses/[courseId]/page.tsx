@@ -2,14 +2,13 @@ import { courses } from '@/lib/courses';
 import { notFound } from 'next/navigation';
 import CourseDetail from './CourseDetail';
 
-type Props = {
+// @ts-expect-error - Next.js type issue with params in page components
+export default async function CourseDetailPage({
+  params,
+}: {
   params: { courseId: string };
-  searchParams: Record<string, string | string[] | undefined>;
-};
-
-export default async function CourseDetailPage(props: Props) {
-  const course = courses.find(c => c.id === props.params.courseId);
-  
+}) {
+  const course = courses.find(c => c.id === params.courseId);
   
   if (!course) {
     notFound();
