@@ -55,6 +55,10 @@ export default function CustomSituation() {
           <h1 className="text-3xl font-bold text-[#2C3E50]">Custom Situation</h1>
         </div>
 
+        <p className="text-neutral mb-4">
+          Let&apos;s create a custom conversation scenario for you to practice.
+        </p>
+
         {conversationState === 'form' && (
           <div className="bg-white rounded-xl p-8 shadow-sm">
             <form onSubmit={handleStartConversation} className="space-y-6">

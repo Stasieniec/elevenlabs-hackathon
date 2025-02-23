@@ -1,18 +1,34 @@
 import { useConversation } from '@11labs/react';
 
-export type ConversationConfig = {
-  context: string;
-  userGoal: string;
-  aiRole: string;
-  systemPrompt?: string;
-  voiceId?: string; // Optional: if you want to specify a voice
-  onMessage?: (message: Message) => void;
-  onDisconnect?: () => void; // Add disconnect callback
-};
-
 export type Message = {
   source: 'user' | 'ai';
   message: string;
+  timestamp?: number;
+};
+
+export type ConversationConfig = {
+  agent: {
+    prompt: {
+      prompt: string;
+    };
+    first_message: string;
+    language: string;
+  };
+};
+
+export type ConversationManager = {
+  connect: () => Promise<void>;
+  disconnect: () => void;
+  sendMessage: (message: string) => void;
+  onMessage: (callback: (message: Message) => void) => void;
+  onError: (callback: (error: Error) => void) => void;
+  onClose: (callback: () => void) => void;
+};
+
+export type ConversationError = {
+  message: string;
+  code?: string;
+  details?: unknown;
 };
 
 export function useConversationManager(config: ConversationConfig) {

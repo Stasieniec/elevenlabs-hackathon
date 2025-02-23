@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, ArrowRight } from 'lucide-react';
+import { ThumbsUp, ThumbsDown, ArrowRight, Mic, MicOff, Send, Loader2 } from 'lucide-react';
 import { useConversationManager, Message, ConversationConfig } from '@/lib/conversation';
+import { Message as ConversationMessage } from '@/types/conversation';
 
 type ConversationInterfaceProps = {
   context: string;
@@ -25,13 +26,13 @@ export default function ConversationInterface({
   voiceId,
   onConversationEnd 
 }: ConversationInterfaceProps) {
-  const [messages, setMessages] = useState<Message[]>([]);
+  const [messages, setMessages] = useState<ConversationMessage[]>([]);
   const [feedback, setFeedback] = useState<ConversationFeedback | null>(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const messagesRef = useRef<Message[]>([]);
+  const messagesRef = useRef<ConversationMessage[]>([]);
 
-  const handleMessage = (message: Message) => {
+  const handleMessage = (message: ConversationMessage) => {
     console.log('Received message:', message);
     setMessages(prev => {
       const newMessages = [...prev, message];
@@ -42,7 +43,7 @@ export default function ConversationInterface({
   };
 
   const handleStartConversation = async () => {
-    const emptyMessages: Message[] = [];
+    const emptyMessages: ConversationMessage[] = [];
     setMessages(emptyMessages);
     messagesRef.current = emptyMessages;
     await conversation.start();
@@ -124,7 +125,13 @@ export default function ConversationInterface({
     <div className="bg-white rounded-xl shadow-sm overflow-hidden">
       <div className="border-b border-gray-100 p-4">
         <h2 className="text-lg font-semibold text-[#2C3E50]">Conversation Practice</h2>
-        <p className="text-sm text-[#34495E] mt-1">{context}</p>
+        <p className="text-neutral-dark mb-4">
+          You&apos;re about to start a conversation with an AI partner. The AI will help you practice this specific situation:
+        </p>
+
+        <p className="text-neutral mb-4">
+          &quot;{context}&quot;
+        </p>
         <div className="mt-2 text-xs text-gray-500">
           <p>Your goal: {userGoal}</p>
           <p>AI's role: {aiGoal}</p>

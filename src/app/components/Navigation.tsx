@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Menu, X, Home, BookOpen, Zap, Settings, Plus, Search, Info } from 'lucide-react';
+import { Menu, X, Home, BookOpen, Zap, Settings, Plus, Search } from 'lucide-react';
 import { UserButton, useAuth } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { Tooltip } from '@/app/components/Tooltip';
@@ -125,4 +125,4 @@ export default function Navigation() {
       </div>
     </>
   );
-} 
+}

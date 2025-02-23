@@ -194,26 +194,26 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#ECF0F1]">
+    <main className="min-h-screen bg-[#ECF0F1] pt-16">
       <Navigation />
-      <div className="container mx-auto mt-8 px-4 space-y-12 pb-12">
+      <div className="container mx-auto px-4 space-y-12 pb-12">
         <section>
           <h2 className="text-3xl font-bold text-neutral-dark mb-6">Settings</h2>
           <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
             <h3 className="text-lg font-semibold text-blue-800 mb-2">Important Information About API Keys</h3>
             <p className="text-blue-700 mb-4">
-              To use the conversation practice features, you'll need to provide your own API keys for ElevenLabs and fal.ai. 
+              To use the conversation practice features, you&apos;ll need to provide your own API keys for ElevenLabs and fal.ai. 
               Since these services can be expensive to run, I have to ask users to use their own API keys.
             </p>
             <p className="text-blue-700 mb-4">
               For security, I recommend:
               1. Creating new API keys specifically for this app
-              2. Deleting the keys after you're done practicing
+              2. Deleting the keys after you&apos;re done practicing
               3. Setting usage limits in both platforms
             </p>
             <p className="text-blue-700">
-              Your API keys are encrypted at rest in the database and are only accessible by you. I used encryption and Supabase's Row Level Security (RLS) 
-              to ensure each user can only access their own keys. Still, if it ends up getting stolen, I'm not responsible - I warned you and I dont have the money to go to court!
+              Your API keys are encrypted at rest in the database and are only accessible by you. I used encryption and Supabase&apos;s Row Level Security (RLS) 
+              to ensure each user can only access their own keys. Still, if it ends up getting stolen, I&apos;m not responsible - I warned you and I dont have the money to go to court!
             </p>
           </div>
         </section>
