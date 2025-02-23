@@ -7,22 +7,57 @@ import { courses } from '@/lib/courses/index';
 import Navigation from '../components/Navigation';
 import { useAuth, useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import type { ReactElement } from 'react';
 
-export default function DashboardPage() {
+export default function DashboardPage(): ReactElement {
   const { userId } = useAuth();
   const { user } = useUser();
   const supabase = useSupabaseAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<typeof courses>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasApiKeys, setHasApiKeys] = useState(false);
+  const [isCheckingApiKeys, setIsCheckingApiKeys] = useState(true);
 
   // Get onboarding status from Clerk metadata
   const hasCompletedOnboarding = user?.unsafeMetadata?.onboardingComplete as boolean;
+  const freeConversationsLeft = user?.unsafeMetadata?.freeConversationsLeft as number ?? 3;
+
+  // Separate effect for API key check to run more frequently
+  useEffect(() => {
+    const checkApiKeys = async () => {
+      if (!userId || !supabase) {
+        setIsCheckingApiKeys(false);
+        return;
+      }
+
+      try {
+        const { data: apiKeys } = await supabase
+          .from('user_api_keys')
+          .select('elevenlabs_api_key_encrypted, fal_ai_api_key_encrypted')
+          .eq('user_id', userId)
+          .maybeSingle();
+
+        setHasApiKeys(
+          !!apiKeys?.elevenlabs_api_key_encrypted && 
+          !!apiKeys?.fal_ai_api_key_encrypted
+        );
+      } catch (err) {
+        console.error('Error checking API keys:', err);
+        setHasApiKeys(false);
+      } finally {
+        setIsCheckingApiKeys(false);
+      }
+    };
+
+    checkApiKeys();
+    // Run this check more frequently
+    const interval = setInterval(checkApiKeys, 2000);
+    return () => clearInterval(interval);
+  }, [userId, supabase]);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !supabase) {
-        setIsLoading(false);
         return;
       }
 
@@ -40,17 +75,6 @@ export default function DashboardPage() {
           .filter(course => course !== undefined) as typeof courses;
 
         setEnrolledCourses(enrolledCourseData);
-
-        // Check API keys
-        const { data: apiKeys } = await supabase
-          .from('user_api_keys')
-          .select('elevenlabs_api_key_encrypted, fal_ai_api_key_encrypted')
-          .maybeSingle();
-
-        setHasApiKeys(
-          !!apiKeys?.elevenlabs_api_key_encrypted && 
-          !!apiKeys?.fal_ai_api_key_encrypted
-        );
       } catch (err) {
         console.error('Error fetching user data:', err);
       } finally {
@@ -77,9 +101,67 @@ export default function DashboardPage() {
             <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent" />
           </section>
 
+          {/* Conversations Status Banner */}
+          {!isCheckingApiKeys && (
+            <>
+              {hasApiKeys ? (
+                <div className="bg-green-50 border border-green-200 rounded-xl p-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-green-600 mb-2">Using Your Own API Keys</h3>
+                      <p className="text-neutral-dark">
+                        You are using your own API keys for unlimited conversation practice.
+                      </p>
+                    </div>
+                    <Link
+                      href="/settings"
+                      className="shrink-0 bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 transition-colors"
+                    >
+                      Manage API Keys
+                    </Link>
+                  </div>
+                </div>
+              ) : freeConversationsLeft > 0 ? (
+                <div className="bg-primary/5 border border-primary/20 rounded-xl p-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-primary mb-2">Free Conversations</h3>
+                      <p className="text-neutral">
+                        You have {freeConversationsLeft} free conversation{freeConversationsLeft !== 1 ? 's' : ''} left using our admin API keys.
+                      </p>
+                    </div>
+                    <Link
+                      href="/settings"
+                      className="shrink-0 bg-primary text-white px-6 py-2 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+                    >
+                      Add Your API Keys
+                    </Link>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-red-50 border border-red-200 rounded-xl p-6">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-600 mb-2">No Free Conversations Left</h3>
+                      <p className="text-neutral-dark">
+                        You have used all your free conversations. Add your own API keys to continue practicing.
+                      </p>
+                    </div>
+                    <Link
+                      href="/settings"
+                      className="shrink-0 bg-red-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-red-700 transition-colors"
+                    >
+                      Add Your API Keys
+                    </Link>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+
           {/* API Keys Notice */}
-          {!hasApiKeys && (
-            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
+          {!hasApiKeys && !isCheckingApiKeys && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6">
               <h3 className="text-lg font-semibold text-yellow-800 mb-2">Set Up Your API Keys</h3>
               <p className="text-yellow-700 mb-4">
                 To start practicing conversations, you&apos;ll need to set up your API keys for ElevenLabs and fal.ai. 
@@ -207,7 +289,7 @@ export default function DashboardPage() {
                     <div className="flex items-center justify-between text-sm text-neutral">
                       <span className="flex items-center gap-2">
                         <BookOpen className="w-4 h-4" />
-                        {course.duration}
+                        {course.chapters.length} chapters
                       </span>
                     </div>
                   </Link>

@@ -1,7 +1,11 @@
 import { NextResponse, NextRequest } from 'next/server';
 import { fal } from "@fal-ai/client";
 import { createClient } from '@supabase/supabase-js';
-import { getAuth } from '@clerk/nextjs/server';
+import { auth } from '@clerk/nextjs/server';
+import { createClerkClient } from '@clerk/backend';
+
+// Initialize Clerk client
+const clerk = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY! });
 
 // Initialize Supabase client
 if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
@@ -77,9 +81,38 @@ Make sure your response is ONLY the JSON object, with no additional text.`;
 
 export async function POST(request: NextRequest) {
   try {
-    const { userId } = getAuth(request);
-    if (!userId) {
+    const authRequest = await auth();
+    if (!authRequest.userId) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    // Get user metadata from Clerk
+    const user = await clerk.users.getUser(authRequest.userId);
+    
+    // Check if user has their own API keys and free conversations
+    const { data: userKeys } = await supabase
+      .from('user_api_keys')
+      .select('fal_ai_api_key_encrypted')
+      .eq('user_id', authRequest.userId)
+      .single();
+
+    // If user doesn't have their own keys, check free conversations
+    if (!userKeys?.fal_ai_api_key_encrypted) {
+      const freeConversationsLeft = (user.unsafeMetadata?.freeConversationsLeft as number) ?? 3;
+      
+      if (freeConversationsLeft <= 0) {
+        return NextResponse.json({ 
+          error: 'You have used all your free conversations. Please add your own API keys in settings to continue.' 
+        }, { status: 403 });
+      }
+
+      // Update the counter in Clerk metadata
+      await clerk.users.updateUser(user.id, {
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          freeConversationsLeft: freeConversationsLeft - 1
+        }
+      });
     }
 
     const body: RequestBody = await request.json();
@@ -93,7 +126,7 @@ export async function POST(request: NextRequest) {
     const { data: apiKeys, error: apiKeysError } = await supabase
       .from('user_api_keys')
       .select('fal_ai_api_key_encrypted')
-      .eq('user_id', userId)
+      .eq('user_id', authRequest.userId)
       .single();
 
     if (apiKeysError && apiKeysError.code !== 'PGRST116') {
@@ -116,7 +149,7 @@ export async function POST(request: NextRequest) {
     const { data: preferences, error: preferencesError } = await supabase
       .from('user_preferences')
       .select('*')
-      .eq('user_id', userId)
+      .eq('user_id', authRequest.userId)
       .order('created_at', { ascending: false })
       .limit(1)
       .single();

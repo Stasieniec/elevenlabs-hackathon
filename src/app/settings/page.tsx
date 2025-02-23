@@ -11,6 +11,7 @@ export default function SettingsPage() {
   const clerk = useClerk();
   const supabase = useSupabaseAuth();
   const [isResetting, setIsResetting] = useState(false);
+  const [isDeletingKeys, setIsDeletingKeys] = useState(false);
   const [isSavingElevenLabsKey, setIsSavingElevenLabsKey] = useState(false);
   const [isSavingFalAiKey, setIsSavingFalAiKey] = useState(false);
   const [showElevenLabsKey, setShowElevenLabsKey] = useState(false);
@@ -25,28 +26,33 @@ export default function SettingsPage() {
   const [falAiSuccess, setFalAiSuccess] = useState<string | null>(null);
 
   // Load existing API keys
-  useEffect(() => {
-    const loadApiKeys = async () => {
-      if (!user?.id || !supabase) return;
+  const loadApiKeys = async () => {
+    if (!user?.id || !supabase) return;
 
-      try {
-        const { data, error } = await supabase
-          .from('user_api_keys')
-          .select('elevenlabs_api_key_encrypted, fal_ai_api_key_encrypted')
-          .eq('user_id', user.id)
-          .maybeSingle();
+    try {
+      const { data, error } = await supabase
+        .from('user_api_keys')
+        .select('elevenlabs_api_key_encrypted, fal_ai_api_key_encrypted')
+        .eq('user_id', user.id)
+        .maybeSingle();
 
-        if (error && error.code !== 'PGRST116') throw error;
+      if (error && error.code !== 'PGRST116') throw error;
 
-        if (data) {
-          if (data.elevenlabs_api_key_encrypted) setElevenLabsKey('••••••••');
-          if (data.fal_ai_api_key_encrypted) setFalAiKey('••••••••');
-        }
-      } catch (err) {
-        console.error('Error loading API keys:', err);
+      if (data) {
+        if (data.elevenlabs_api_key_encrypted) setElevenLabsKey('••••••••');
+        if (data.fal_ai_api_key_encrypted) setFalAiKey('••••••••');
+      } else {
+        // No keys found, reset the input fields
+        setElevenLabsKey('');
+        setFalAiKey('');
       }
-    };
+    } catch (err) {
+      console.error('Error loading API keys:', err);
+    }
+  };
 
+  // Initial load of API keys
+  useEffect(() => {
     loadApiKeys();
   }, [user?.id, supabase]);
 
@@ -213,7 +219,14 @@ export default function SettingsPage() {
   };
 
   const handleDeleteKeys = async () => {
-    if (!user?.id || !supabase || isSavingElevenLabsKey || isSavingFalAiKey) return;
+    if (!user?.id || !supabase || isDeletingKeys) {
+      console.log('Early return conditions:', { 
+        hasUserId: !!user?.id, 
+        hasSupabase: !!supabase, 
+        isDeletingKeys 
+      });
+      return;
+    }
 
     if (!confirm('Are you sure you want to delete your API keys? This cannot be undone.')) {
       return;
@@ -221,21 +234,80 @@ export default function SettingsPage() {
 
     setError(null);
     setSuccessMessage(null);
+    setIsDeletingKeys(true);
 
     try {
+      console.log('Attempting to delete API keys for user:', user.id);
+      
+      // First, check if keys exist
+      const { data: existingKeys, error: checkError } = await supabase
+        .from('user_api_keys')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (checkError) {
+        console.error('Error checking existing keys:', checkError);
+        throw new Error('Failed to check existing keys');
+      }
+
+      if (!existingKeys) {
+        console.log('No keys found to delete');
+        throw new Error('No API keys found to delete');
+      }
+
+      // Delete the API keys from Supabase
       const { error: deleteError } = await supabase
         .from('user_api_keys')
         .delete()
         .eq('user_id', user.id);
 
-      if (deleteError) throw deleteError;
+      if (deleteError) {
+        console.error('Error deleting keys:', deleteError);
+        throw deleteError;
+      }
 
+      console.log('Successfully deleted API keys');
+
+      // Reset all key-related states
       setElevenLabsKey('');
       setFalAiKey('');
+      setShowElevenLabsKey(false);
+      setShowFalAiKey(false);
+      setElevenLabsError(null);
+      setFalAiError(null);
+      setElevenLabsSuccess(null);
+      setFalAiSuccess(null);
+      
+      // Show success message
       setSuccessMessage('API keys deleted successfully');
+
+      // Reset free conversations counter if needed
+      if (user.unsafeMetadata?.freeConversationsLeft === 0) {
+        console.log('Resetting free conversations counter');
+        await clerk.user?.update({
+          unsafeMetadata: {
+            ...user.unsafeMetadata,
+            freeConversationsLeft: 3
+          }
+        });
+      }
+
+      // Force a session refresh to ensure all states are updated
+      if (clerk.session) {
+        await clerk.session.touch();
+      }
+
+      // Force reload all data
+      await loadApiKeys();
+      
+      // Hard reload the page to ensure all states are reset
+      window.location.href = '/dashboard';
     } catch (err) {
-      console.error('Error deleting API keys:', err);
+      console.error('Error in handleDeleteKeys:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete API keys');
+    } finally {
+      setIsDeletingKeys(false);
     }
   };
 
@@ -244,6 +316,18 @@ export default function SettingsPage() {
       <Navigation />
       <div className="md:pl-64 transition-all duration-200">
         <div className="container mx-auto px-4 py-8 space-y-8 max-w-4xl">
+          {/* Success/Error Messages */}
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 rounded-xl p-4 mb-4">
+              <p className="text-green-800">{successMessage}</p>
+            </div>
+          )}
+          {error && (
+            <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+              <p className="text-red-800">{error}</p>
+            </div>
+          )}
+
           <section>
             <h2 className="text-3xl font-bold text-neutral-dark mb-6">Settings</h2>
             <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
@@ -278,18 +362,6 @@ export default function SettingsPage() {
                 <p className="text-sm text-neutral">Manage your API keys for ElevenLabs and fal.ai</p>
               </div>
             </div>
-
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 text-red-700 rounded-lg">
-                {error}
-              </div>
-            )}
-
-            {successMessage && (
-              <div className="mb-6 p-4 bg-green-50 border border-green-200 text-green-700 rounded-lg">
-                {successMessage}
-              </div>
-            )}
 
             <div className="space-y-6">
               {/* ElevenLabs API Key */}
@@ -425,10 +497,14 @@ export default function SettingsPage() {
               <div className="flex justify-between items-center pt-4 border-t">
                 <button
                   onClick={handleDeleteKeys}
-                  disabled={isSavingElevenLabsKey || isSavingFalAiKey || (!elevenLabsKey && !falAiKey)}
+                  disabled={isDeletingKeys}
                   className="text-red-500 hover:text-red-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  {isDeletingKeys ? (
+                    <Loader2 className="w-4 h-4 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-4 h-4" />
+                  )}
                   Delete Keys
                 </button>
               </div>
