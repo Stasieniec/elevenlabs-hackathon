@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams } from 'next/navigation';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { getSituationById } from '@/lib/situations';
 import SituationConversationTemplate from '@/app/components/SituationConversationTemplate';
 import { useConversationManager } from '@/lib/conversation';
@@ -27,24 +27,18 @@ export default function QuickTrainingSession() {
     improvementAreas: string[];
   } | null>(null);
   const isGeneratingFeedback = useRef(false);
+  const conversationRef = useRef<ReturnType<typeof useConversationManager>>(undefined);
   
   const handleMessage = (message: Message) => {
     setMessages(prev => [...prev, message]);
   };
 
-  const handleStartPractice = async () => {
-    setMessages([]);
-    setConversationState('conversation');
-    isGeneratingFeedback.current = false;
-    await conversation.start();
-  };
-
-  const handleEndPractice = async () => {
+  const handleEndPractice = useCallback(async () => {
     if (messages.length === 0 || isGeneratingFeedback.current) return;
     
     try {
       isGeneratingFeedback.current = true;
-      await conversation.stop();
+      await conversationRef.current?.stop();
       setConversationState('analyzing');
       
       // Generate feedback using fal.ai
@@ -61,6 +55,13 @@ export default function QuickTrainingSession() {
       console.error('Error generating feedback:', error);
       isGeneratingFeedback.current = false;
     }
+  }, [messages, situation?.context, situation?.userGoal, situation?.aiRole]);
+
+  const handleStartPractice = async () => {
+    setMessages([]);
+    setConversationState('conversation');
+    isGeneratingFeedback.current = false;
+    await conversationRef.current?.start();
   };
 
   const handleTryAgain = () => {
@@ -80,6 +81,7 @@ export default function QuickTrainingSession() {
   };
 
   const conversation = useConversationManager(config);
+  conversationRef.current = conversation;
 
   // Handle automatic conversation end
   useEffect(() => {

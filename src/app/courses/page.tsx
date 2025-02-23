@@ -8,7 +8,6 @@ import type { LucideIcon } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import ConfirmDialog from '../components/ConfirmDialog';
-import { Course } from '@/lib/types/courses';
 import { courses } from '@/lib/courses/index';
 
 type EnrolledCourse = {
