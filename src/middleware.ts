@@ -2,32 +2,35 @@ import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
 import { NextResponse } from 'next/server';
 
 // Define routes that don't require authentication
-const isPublicRoute = createRouteMatcher(['/', '/sign-in', '/sign-up']);
+const isPublicRoute = createRouteMatcher([
+  '/',
+  '/_next(.*)',
+  '/favicon.ico',
+  '/api/trpc(.*)'
+]);
 
 // Define routes that are allowed even without completing onboarding
 const isAllowedWithoutOnboarding = createRouteMatcher([
-  '/onboarding',
-  '/dashboard',
-  '/settings',
-  '/courses(.*)',  // Allow all course-related routes
-  '/quick-training(.*)', // Allow quick training
-  '/custom(.*)', // Allow custom situations
-  '/api(.*)'  // Allow API routes
+  '/onboarding(.*)',
+  '/dashboard(.*)',
+  '/settings(.*)',
+  '/courses(.*)',
+  '/quick-training(.*)',
+  '/custom(.*)',
+  '/api(.*)'
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims } = await auth();
   const { pathname } = request.nextUrl;
 
-  // If the user isn't signed in and the route is private, redirect to sign-in
+  // If the user isn't signed in and the route is private, redirect to Account Portal
   if (!userId && !isPublicRoute(request)) {
-    const signInUrl = new URL('/sign-in', request.url);
-    signInUrl.searchParams.set('redirect_url', request.url);
-    return NextResponse.redirect(signInUrl);
+    return NextResponse.redirect(`https://accounts.oratoria.me/sign-in?redirect_url=${encodeURIComponent(request.url)}`);
   }
 
   // If the user is signed in and trying to access auth pages, redirect to dashboard
-  if (userId && ['/sign-in', '/sign-up'].includes(pathname)) {
+  if (userId && pathname === '/') {
     return NextResponse.redirect(new URL('/dashboard', request.url));
   }
 
@@ -48,7 +51,7 @@ export default clerkMiddleware(async (auth, request) => {
 // Protect all routes except public ones and static files
 export const config = {
   matcher: [
-    '/((?!_next|[^?]*\\.[\\w]+$|_next).*)',
+    '/((?!_next/static|_next/image|favicon.ico).*)',
     '/(api|trpc)(.*)',
   ],
 };
