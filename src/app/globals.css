@@ -5,11 +5,20 @@
 :root {
   --foreground-rgb: 0, 0, 0;
   --background-rgb: 236, 240, 241;
+  --foreground: rgb(var(--foreground-rgb));
+  --background: rgb(var(--background-rgb));
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --foreground-rgb: 255, 255, 255;
+    --background-rgb: 26, 32, 44;
+  }
 }
 
 body {
-  color: rgb(var(--foreground-rgb));
-  background: rgb(var(--background-rgb));
+  color: var(--foreground);
+  background: var(--background);
   min-height: 100vh;
   margin: 0;
   padding: 0;
