@@ -8,6 +8,7 @@ export type ConversationConfig = {
     first_message: string;
     language: string;
   };
+  apiKey: string;
 };
 
 export type ConversationInitMetadata = {
@@ -35,14 +36,14 @@ type WebsocketResponse = {
 };
 
 export async function createAgent(config: ConversationConfig): Promise<string> {
-  const response = await fetch('/api/conversation', {
+  const response = await fetch('https://api.elevenlabs.io/v1/agent', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
+      'xi-api-key': config.apiKey
     },
     body: JSON.stringify({
-      type: 'start',
-      data: config
+      agent: config.agent
     }),
   });
 
@@ -50,18 +51,23 @@ export async function createAgent(config: ConversationConfig): Promise<string> {
     throw new Error('Failed to create agent');
   }
 
-  const data: ApiResponse<AgentResponse> = await response.json();
-  return data.data.agent_id;
+  const data = await response.json();
+  return data.agent_id;
 }
 
-export async function getWebsocketUrl(agentId: string): Promise<string> {
-  const response = await fetch(`/api/conversation/${agentId}/websocket`);
+export async function getWebsocketUrl(agentId: string, apiKey: string): Promise<string> {
+  const response = await fetch(`https://api.elevenlabs.io/v1/agent/${agentId}/websocket`, {
+    headers: {
+      'xi-api-key': apiKey
+    }
+  });
+  
   if (!response.ok) {
     throw new Error('Failed to get websocket URL');
   }
 
-  const data: ApiResponse<WebsocketResponse> = await response.json();
-  return data.data.url;
+  const data = await response.json();
+  return data.url;
 }
 
 export type ConversationFeedback = {

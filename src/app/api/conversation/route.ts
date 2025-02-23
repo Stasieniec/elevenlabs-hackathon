@@ -51,9 +51,6 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Set the API key for this request
-    process.env.ELEVENLABS_API_KEY = apiKeys.elevenlabs_api_key_encrypted;
-
     const { type, data } = await req.json();
 
     if (type === 'start') {
@@ -75,7 +72,8 @@ export async function POST(req: NextRequest) {
             },
             first_message: "Hello! I understand the scenario and my role. I'll help you practice this specific situation. Shall we begin?",
             language: "en"
-          }
+          },
+          apiKey: apiKeys.elevenlabs_api_key_encrypted
         };
 
         // Create a new agent
@@ -83,7 +81,7 @@ export async function POST(req: NextRequest) {
         console.log('Created agent with ID:', agentId);
 
         // Get the WebSocket URL for this agent
-        const url = await getWebsocketUrl(agentId);
+        const url = await getWebsocketUrl(agentId, apiKeys.elevenlabs_api_key_encrypted);
         return NextResponse.json({ url, agentId });
       } catch (error) {
         console.error('Error starting conversation:', error);
