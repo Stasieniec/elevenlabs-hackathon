@@ -30,7 +30,7 @@ export default clerkMiddleware(async (auth, request) => {
   // Set CSP headers to allow necessary domains (all in one line to avoid formatting issues)
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io; connect-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io https://o449981.ingest.us.sentry.io; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://*.clerk.com https://*.sentry-cdn.com https://clerk.oratoria.me; style-src 'self' 'unsafe-inline' https://*.clerk.com https://clerk.oratoria.me; img-src 'self' data: https://*.clerk.com https://*.oratoria.me; frame-src 'self' https://*.clerk.com https://*.oratoria.me"
+    "default-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io; connect-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io https://o449981.ingest.us.sentry.io wss://*.clerk.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.clerk.com https://*.sentry-cdn.com https://clerk.oratoria.me; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://*.clerk.com https://clerk.oratoria.me; img-src 'self' data: blob: https://*.clerk.com https://*.oratoria.me; frame-src 'self' https://*.clerk.com https://*.oratoria.me; media-src 'self' https://*.clerk.com https://*.oratoria.me"
   );
 
   // Set CORS headers
