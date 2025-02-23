@@ -1,8 +1,7 @@
-import { clerkMiddleware } from "@clerk/nextjs/server"
+import { clerkMiddleware } from "@clerk/nextjs/server";
 
-export default clerkMiddleware()
+export default clerkMiddleware();
 
-// OH GOD WHAT THE FUCK IS WRONG WITH THIS
 export const config = {
-  matcher: ["/((?!.+\\.[\\w]+$|_next).*)", "/", "/(api|trpc)(.*)"],
-} 
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+}; 
