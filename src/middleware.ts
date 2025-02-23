@@ -24,8 +24,16 @@ export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims } = await auth();
   const { pathname } = request.nextUrl;
 
-  // If the user isn't signed in and the route is private, redirect to Account Portal
+  // Check if this is an RSC request
+  const isRSC = request.headers.get('RSC') || request.url.includes('_rsc=');
+  
+  // If the user isn't signed in and the route is private
   if (!userId && !isPublicRoute(request)) {
+    if (isRSC) {
+      // For RSC requests, return 401 instead of redirecting
+      return new NextResponse(null, { status: 401 });
+    }
+    // For regular requests, redirect to sign in
     return NextResponse.redirect(`https://accounts.oratoria.me/sign-in?redirect_url=${encodeURIComponent(request.url)}`);
   }
 
