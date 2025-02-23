@@ -5,8 +5,7 @@ import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { Course } from '@/lib/courses';
 import { useUser } from '@clerk/nextjs';
-import { useSupabase } from '@/app/supabase-provider';
-import { useRouter } from 'next/navigation';
+import { useSupabase } from '../../supabase-provider';
 
 type Props = {
   course: Course;
@@ -15,7 +14,6 @@ type Props = {
 export default function CourseDetail({ course }: Props) {
   const { user } = useUser();
   const { supabase } = useSupabase();
-  const router = useRouter();
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -104,44 +102,68 @@ export default function CourseDetail({ course }: Props) {
           </div>
         )}
 
-        <div className="space-y-4">
-          {course.chapters.map((chapter) => (
-            <div 
-              key={chapter.id}
-              className="bg-white rounded-lg shadow-lg p-6"
+        {!isLoading && !isEnrolled ? (
+          <div className="text-center py-8">
+            <p className="text-lg text-gray-600 mb-4">You need to enroll in this course to access the chapters.</p>
+            <button 
+              onClick={async () => {
+                if (!user || !supabase) return;
+                try {
+                  const userId = user.id.replace('user_', '');
+                  await supabase
+                    .from('course_enrollments')
+                    .insert({ user_id: userId, course_id: course.id });
+                  setIsEnrolled(true);
+                } catch (err) {
+                  console.error('Error enrolling:', err);
+                  setError('Failed to enroll in the course');
+                }
+              }}
+              className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-opacity-90 transition-colors"
             >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <h3 className="text-[#34495E] text-xl font-semibold mb-2">
-                    {chapter.title}
-                  </h3>
-                  {chapter.description && (
-                    <p className="text-gray-600 mb-4">{chapter.description}</p>
-                  )}
-                  {!isLoading && chapterProgress[chapter.id] > 0 && (
-                    <div className="mb-4">
-                      <div className="h-2 bg-gray-200 rounded-full w-full">
-                        <div 
-                          className="h-full bg-[#27AE60] rounded-full transition-all duration-300"
-                          style={{ width: `${chapterProgress[chapter.id]}%` }}
-                        />
+              Enroll Now
+            </button>
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {course.chapters.map((chapter) => (
+              <div 
+                key={chapter.id}
+                className="bg-white rounded-lg shadow-lg p-6"
+              >
+                <div className="flex justify-between items-start">
+                  <div className="flex-1">
+                    <h3 className="text-[#34495E] text-xl font-semibold mb-2">
+                      {chapter.title}
+                    </h3>
+                    {chapter.description && (
+                      <p className="text-gray-600 mb-4">{chapter.description}</p>
+                    )}
+                    {!isLoading && chapterProgress[chapter.id] > 0 && (
+                      <div className="mb-4">
+                        <div className="h-2 bg-gray-200 rounded-full w-full">
+                          <div 
+                            className="h-full bg-[#27AE60] rounded-full transition-all duration-300"
+                            style={{ width: `${chapterProgress[chapter.id]}%` }}
+                          />
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">
+                          {chapterProgress[chapter.id]}% complete
+                        </p>
                       </div>
-                      <p className="text-sm text-gray-600 mt-1">
-                        {chapterProgress[chapter.id]}% complete
-                      </p>
-                    </div>
-                  )}
+                    )}
+                  </div>
+                  <Link
+                    href={`/courses/${course.id}/chapters/${chapter.id}`}
+                    className="inline-block bg-[#27AE60] text-white px-4 py-2 rounded hover:bg-opacity-90 transition-colors"
+                  >
+                    {chapterProgress[chapter.id] > 0 ? 'Continue Chapter' : 'Start Chapter'}
+                  </Link>
                 </div>
-                <Link
-                  href={`/courses/${course.id}/chapters/${chapter.id}`}
-                  className="inline-block bg-[#27AE60] text-white px-4 py-2 rounded hover:bg-opacity-90 transition-colors"
-                >
-                  {chapterProgress[chapter.id] > 0 ? 'Continue Chapter' : 'Start Chapter'}
-                </Link>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </main>
     </>
   );
