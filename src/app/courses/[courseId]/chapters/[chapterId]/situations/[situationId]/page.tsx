@@ -8,7 +8,6 @@ import { useConversationManager, Message } from '@/lib/conversation';
 import ConversationFeedback from '@/app/components/ConversationFeedback';
 import { generateFeedback } from '@/lib/elevenlabs';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import Navigation from '@/app/components/Navigation';
 
 type ConversationState = 'initial' | 'conversation' | 'feedback' | 'analyzing';
@@ -18,10 +17,6 @@ export default function SituationPage() {
   const courseId = params.courseId as string;
   const chapterId = params.chapterId as string;
   const situationId = params.situationId as string;
-
-  const course = courses.find(c => c.id === courseId);
-  const chapter = course?.chapters.find(ch => ch.id === chapterId);
-  const situation = chapter?.situations.find(s => s.id === situationId);
   
   const [conversationState, setConversationState] = useState<ConversationState>('initial');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -32,7 +27,11 @@ export default function SituationPage() {
   } | null>(null);
   const isGeneratingFeedback = useRef(false);
   const conversationRef = useRef<ReturnType<typeof useConversationManager>>(undefined);
-  
+
+  const course = courses.find(c => c.id === courseId);
+  const chapter = course?.chapters.find(ch => ch.id === chapterId);
+  const situation = chapter?.situations.find(s => s.id === situationId);
+
   const handleMessage = useCallback((newMessage: Message) => {
     const messageToAdd: Message = {
       source: newMessage.source,
@@ -80,6 +79,26 @@ export default function SituationPage() {
     isGeneratingFeedback.current = false;
   };
 
+  // Initialize conversation manager
+  const config = {
+    context: situation?.context || '',
+    userGoal: situation?.userGoal || '',
+    aiRole: situation?.aiRole || '',
+    voice: situation?.voice || 'male',
+    onMessage: handleMessage,
+    onDisconnect: handleEndPractice
+  };
+  
+  const conversation = useConversationManager(config);
+  conversationRef.current = conversation;
+
+  // Handle automatic conversation end
+  useEffect(() => {
+    if (conversation.status === 'disconnected' && conversationState === 'conversation') {
+      handleEndPractice();
+    }
+  }, [conversation.status, conversationState, handleEndPractice]);
+
   if (!course || !chapter || !situation) {
     return (
       <div className="min-h-screen bg-[#ECF0F1] flex items-center justify-center">
@@ -95,25 +114,6 @@ export default function SituationPage() {
       </div>
     );
   }
-
-  const config = {
-    context: situation.context,
-    userGoal: situation.userGoal,
-    aiRole: situation.aiRole,
-    voice: situation.voice || 'male',
-    onMessage: handleMessage,
-    onDisconnect: handleEndPractice
-  };
-
-  const conversation = useConversationManager(config);
-  conversationRef.current = conversation;
-
-  // Handle automatic conversation end
-  useEffect(() => {
-    if (conversation.status === 'disconnected' && conversationState === 'conversation') {
-      handleEndPractice();
-    }
-  }, [conversation.status, conversationState, handleEndPractice]);
 
   return (
     <main className="min-h-screen bg-[#ECF0F1]">

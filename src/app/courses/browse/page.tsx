@@ -349,9 +349,6 @@ export default function BrowseCoursesPage() {
                           </p>
                           
                           <div className="mt-4 flex items-center justify-between">
-                            <div className="text-sm text-gray-600">
-                              <span>{course.duration}</span>
-                            </div>
                             {isEnrolled ? (
                               <button
                                 onClick={() => setCourseToUnenroll(course)}

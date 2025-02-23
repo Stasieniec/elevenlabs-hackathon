@@ -1,14 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Brain, Heart, Frown, Star, Clock, Target } from 'lucide-react';
+import { ArrowLeft, Brain, Heart, Frown, Clock, Target } from 'lucide-react';
 import Navigation from '@/app/components/Navigation';
 import { courses } from '@/lib/courses';
 import { QuickTrainingSituation } from '@/lib/types/situations';
 
-const iconMap: { [key: string]: any } = {
+const iconMap: Record<string, typeof Brain | typeof Heart | typeof Frown> = {
   brain: Brain,
   heart: Heart,
   frown: Frown,
@@ -78,7 +77,7 @@ export default function ChapterPage() {
           {/* Situations Grid */}
           <div className="grid gap-6">
             {chapter.situations.map((situation: QuickTrainingSituation, index: number) => {
-              const Icon = iconMap[situation.icon] || Star;
+              const Icon = iconMap[situation.icon] || Brain;
               
               return (
                 <Link

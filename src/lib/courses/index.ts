@@ -1,6 +1,6 @@
 import { Course } from '../types/courses';
 import { breakingTaboosCourse } from './breakingTaboos';
-import { Shield, Briefcase, Heart, Users } from 'lucide-react';
+import { Briefcase, Heart, Users } from 'lucide-react';
 
 const professionalBoundariesCourse: Course = {
   id: "professional-boundaries",
