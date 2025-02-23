@@ -8,8 +8,15 @@ type Props = {
   params: { courseId: string };
 };
 
+// Create a type for the serialized course
+type SerializedCourse = Omit<typeof courses[0], 'icon'> & {
+  icon: string;
+};
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const course = courses.find(c => c.id === params.courseId);
+  // Ensure params is awaited
+  const courseId = await Promise.resolve(params.courseId);
+  const course = courses.find(c => c.id === courseId);
   
   if (!course) {
     return {
@@ -23,19 +30,27 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function CourseDetailPage({
+export default async function CourseDetailPage({
   params,
 }: Props) {
-  const course = courses.find(c => c.id === params.courseId);
+  // Ensure params is awaited
+  const courseId = await Promise.resolve(params.courseId);
+  const course = courses.find(c => c.id === courseId);
   
   if (!course) {
     notFound();
   }
 
+  // Serialize the course data, converting the icon to a string name
+  const serializedCourse: SerializedCourse = {
+    ...course,
+    icon: course.icon.displayName || 'Users', // Use displayName or fallback to 'Users'
+  };
+
   return (
     <div className="min-h-screen bg-[#ECF0F1]">
       <ClientOnly>
-        <CourseDetail course={course} />
+        <CourseDetail course={serializedCourse} />
       </ClientOnly>
     </div>
   );

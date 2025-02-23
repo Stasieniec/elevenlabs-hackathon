@@ -6,9 +6,21 @@ import Link from 'next/link';
 import { Course } from '@/lib/courses';
 import { useUser } from '@clerk/nextjs';
 import { useSupabase } from '../../supabase-provider';
+import { Users, Briefcase, MessageSquare } from 'lucide-react';
+
+// Create a type for the serialized course
+type SerializedCourse = Omit<Course, 'icon'> & {
+  icon: string;
+};
 
 type Props = {
-  course: Course;
+  course: SerializedCourse;
+};
+
+const iconMap = {
+  Users,
+  Briefcase,
+  MessageSquare,
 };
 
 export default function CourseDetail({ course }: Props) {
@@ -18,6 +30,9 @@ export default function CourseDetail({ course }: Props) {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chapterProgress, setChapterProgress] = useState<Record<string, number>>({});
+
+  // Get the icon component from the icon name
+  const Icon = iconMap[course.icon as keyof typeof iconMap];
 
   useEffect(() => {
     const checkEnrollment = async () => {
@@ -86,7 +101,12 @@ export default function CourseDetail({ course }: Props) {
             <Link href="/courses" className="text-white hover:text-gray-300">
               ← Back to Courses
             </Link>
-            <h1 className="text-white text-2xl font-bold">{course.title}</h1>
+            <div className="flex items-center space-x-3">
+              <div className="p-2 rounded-full bg-white bg-opacity-10">
+                <Icon className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-white text-2xl font-bold">{course.title}</h1>
+            </div>
           </div>
           <UserButton afterSignOutUrl="/"/>
         </div>

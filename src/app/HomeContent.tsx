@@ -138,9 +138,9 @@ export default function HomeContent() {
           <main className="container mx-auto mt-8 px-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
               <NavCard 
-                title="My Courses" 
-                description="Access your selected courses"
-                href="/courses"
+                title="Dashboard" 
+                description="View your progress and activities"
+                href="/dashboard"
               />
               <NavCard 
                 title="Browse Courses" 

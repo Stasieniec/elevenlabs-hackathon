@@ -5,44 +5,48 @@ import Link from 'next/link';
 import { ArrowRight, Target, BookOpen, MessageSquare, Loader2 } from 'lucide-react';
 import { courses } from '@/lib/courses';
 import Navigation from '../components/Navigation';
-import { useAuth } from '@clerk/nextjs';
+import { useAuth, useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 export default function DashboardPage() {
   const { userId } = useAuth();
+  const { user } = useUser();
   const supabase = useSupabaseAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<typeof courses>([]);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Get onboarding status from Clerk metadata
+  const hasCompletedOnboarding = user?.unsafeMetadata?.onboardingComplete as boolean;
+
   useEffect(() => {
-    const fetchEnrolledCourses = async () => {
+    const fetchUserData = async () => {
       if (!userId || !supabase) {
         setIsLoading(false);
         return;
       }
 
       try {
-        const { data: enrollments, error } = await supabase
+        // Fetch enrolled courses
+        const { data: enrollments, error: enrollmentsError } = await supabase
           .from('course_enrollments')
           .select('course_id')
           .eq('user_id', userId);
 
-        if (error) throw error;
+        if (enrollmentsError) throw enrollmentsError;
 
-        // Map enrolled course IDs to actual course data
         const enrolledCourseData = enrollments
           .map(enrollment => courses.find(c => c.id === enrollment.course_id))
           .filter(course => course !== undefined) as typeof courses;
 
         setEnrolledCourses(enrolledCourseData);
       } catch (err) {
-        console.error('Error fetching enrolled courses:', err);
+        console.error('Error fetching user data:', err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchEnrolledCourses();
+    fetchUserData();
   }, [userId, supabase]);
 
   return (
@@ -55,6 +59,20 @@ export default function DashboardPage() {
           <p className="text-neutral text-lg mb-8">
             Master the art of conversation through interactive practice and AI-powered feedback.
           </p>
+          {!hasCompletedOnboarding && (
+            <div className="bg-secondary/10 border border-secondary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+              <div className="text-center sm:text-left">
+                <h3 className="text-lg font-semibold text-secondary mb-1">Complete Your Profile</h3>
+                <p className="text-neutral">Tell us about your language preferences and communication goals.</p>
+              </div>
+              <Link
+                href="/onboarding"
+                className="shrink-0 bg-secondary text-white px-6 py-2 rounded-lg font-semibold hover:bg-secondary/90 transition-colors"
+              >
+                Complete Onboarding
+              </Link>
+            </div>
+          )}
         </section>
 
         {/* Quick Access Cards */}

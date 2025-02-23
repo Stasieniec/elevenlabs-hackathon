@@ -21,32 +21,9 @@ export default function BrowseCoursesPage() {
   const [selectedDifficulty, setSelectedDifficulty] = useState<string | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
   const [enrolledCourseIds, setEnrolledCourseIds] = useState<string[]>([]);
-  const [previouslyEnrolledCourseIds, setPreviouslyEnrolledCourseIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [courseToUnenroll, setCourseToUnenroll] = useState<Course | null>(null);
-
-  useEffect(() => {
-    const fetchPreviousEnrollments = async () => {
-      if (!user || !supabase) return;
-
-      try {
-        const { data: performances } = await supabase
-          .from('conversation_performances')
-          .select('course_id')
-          .eq('user_id', user.id);
-
-        if (performances) {
-          const uniqueCourseIds = [...new Set(performances.map(p => p.course_id))];
-          setPreviouslyEnrolledCourseIds(uniqueCourseIds);
-        }
-      } catch (err) {
-        console.error('Error fetching previous enrollments:', err);
-      }
-    };
-
-    fetchPreviousEnrollments();
-  }, [user, supabase]);
 
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
@@ -342,7 +319,7 @@ export default function BrowseCoursesPage() {
               {filteredCourses.map((course) => {
                 const Icon = course.icon;
                 const isEnrolling = enrollingCourseId === course.id.toString();
-                const wasPreviouslyEnrolled = previouslyEnrolledCourseIds.includes(course.id);
+                const isEnrolled = enrolledCourseIds.includes(course.id);
 
                 return (
                   <div 
@@ -382,7 +359,7 @@ export default function BrowseCoursesPage() {
                           <div className="text-sm text-gray-600">
                             <span>{course.duration}</span>
                           </div>
-                          {enrolledCourseIds.includes(course.id) ? (
+                          {isEnrolled ? (
                             <button
                               onClick={() => setCourseToUnenroll(course)}
                               disabled={isEnrolling}
@@ -407,7 +384,7 @@ export default function BrowseCoursesPage() {
                             >
                               <Plus size={20} />
                               <span>
-                                {isEnrolling ? 'Enrolling...' : wasPreviouslyEnrolled ? 'Enroll Again' : 'Enroll Now'}
+                                {isEnrolling ? 'Enrolling...' : 'Enroll Now'}
                               </span>
                             </button>
                           )}
