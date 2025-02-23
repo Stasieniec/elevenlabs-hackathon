@@ -23,7 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default async function CourseDetailPage({
+export default function CourseDetailPage({
   params,
 }: Props) {
   const course = courses.find(c => c.id === params.courseId);

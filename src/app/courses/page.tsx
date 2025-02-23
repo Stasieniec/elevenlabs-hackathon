@@ -92,11 +92,14 @@ export default function CoursesPage() {
         throw new Error('Course not found in static data');
       }
 
+      // Get the user ID without the 'user_' prefix
+      const userId = user.id.replace('user_', '');
+
       // 1. Delete conversation performances
       const { error: conversationError } = await supabase
         .from('conversation_performances')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseToUnenroll.id);
 
       if (conversationError) throw conversationError;
@@ -105,7 +108,7 @@ export default function CoursesPage() {
       const { error: progressError } = await supabase
         .from('user_progress')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .in(
           'situation_id', 
           staticCourse.chapters.flatMap(chapter => 
@@ -119,7 +122,7 @@ export default function CoursesPage() {
       const { error: chapterError } = await supabase
         .from('chapter_progress')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseToUnenroll.id);
 
       if (chapterError) throw chapterError;
@@ -128,7 +131,7 @@ export default function CoursesPage() {
       const { error: deleteError } = await supabase
         .from('course_enrollments')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseToUnenroll.id);
 
       if (deleteError) throw deleteError;

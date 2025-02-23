@@ -3,14 +3,26 @@
 @tailwind utilities;
 
 :root {
-  --primary-color: #2C3E50;
-  --secondary-color: #27AE60;
-  --accent-color: #F39C12;
-  --background-color: #ECF0F1;
-  --text-color: #34495E;
+  --foreground-rgb: 0, 0, 0;
+  --background-rgb: 236, 240, 241;
 }
 
 body {
-  color: var(--text-color);
-  background: var(--background-color);
+  color: rgb(var(--foreground-rgb));
+  background: rgb(var(--background-rgb));
+  isolation: isolate;
+  position: relative;
+  z-index: 1;
+}
+
+/* Reset any browser extension styles */
+body > div {
+  all: revert;
+}
+
+/* Isolate app styles from browser extensions */
+#app-root {
+  isolation: isolate;
+  position: relative;
+  z-index: 1;
 } 

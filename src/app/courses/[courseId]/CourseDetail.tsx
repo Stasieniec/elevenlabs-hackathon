@@ -5,7 +5,8 @@ import { UserButton } from '@clerk/nextjs';
 import Link from 'next/link';
 import { Course } from '@/lib/courses';
 import { useUser } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '@/app/supabase-provider';
+import { useRouter } from 'next/navigation';
 
 type Props = {
   course: Course;
@@ -13,9 +14,41 @@ type Props = {
 
 export default function CourseDetail({ course }: Props) {
   const { user } = useUser();
-  const supabase = useSupabaseAuth();
+  const { supabase } = useSupabase();
+  const router = useRouter();
+  const [isEnrolled, setIsEnrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [chapterProgress, setChapterProgress] = useState<Record<string, number>>({});
+
+  useEffect(() => {
+    const checkEnrollment = async () => {
+      if (!user || !supabase) return;
+
+      try {
+        const userId = user.id.replace('user_', '');
+        const { data, error } = await supabase
+          .from('course_enrollments')
+          .select('id')
+          .eq('user_id', userId)
+          .eq('course_id', course.id)
+          .single();
+
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
+
+        setIsEnrolled(!!data);
+      } catch (err) {
+        console.error('Error checking enrollment:', err);
+        setError('Failed to check enrollment status');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkEnrollment();
+  }, [user, supabase, course.id]);
 
   useEffect(() => {
     async function fetchProgress() {
@@ -65,6 +98,12 @@ export default function CourseDetail({ course }: Props) {
       <main className="container mx-auto mt-8 px-4">
         <h2 className="text-2xl font-bold mb-6">Chapters</h2>
         
+        {error && (
+          <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+            {error}
+          </div>
+        )}
+
         <div className="space-y-4">
           {course.chapters.map((chapter) => (
             <div 

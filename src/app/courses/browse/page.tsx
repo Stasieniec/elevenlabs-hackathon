@@ -73,11 +73,14 @@ export default function BrowseCoursesPage() {
         throw new Error('Course not found in static data');
       }
 
+      // Get the user ID without the 'user_' prefix
+      const userId = user.id.replace('user_', '');
+
       // 1. Delete conversation performances
       const { error: conversationError } = await supabase
         .from('conversation_performances')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseId);
 
       if (conversationError) throw conversationError;
@@ -86,7 +89,7 @@ export default function BrowseCoursesPage() {
       const { error: progressError } = await supabase
         .from('user_progress')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .in(
           'situation_id', 
           staticCourse.chapters.flatMap(chapter => 
@@ -100,7 +103,7 @@ export default function BrowseCoursesPage() {
       const { error: chapterError } = await supabase
         .from('chapter_progress')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseId);
 
       if (chapterError) throw chapterError;
@@ -109,7 +112,7 @@ export default function BrowseCoursesPage() {
       const { error: deleteError } = await supabase
         .from('course_enrollments')
         .delete()
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseId);
 
       if (deleteError) throw deleteError;
@@ -133,11 +136,15 @@ export default function BrowseCoursesPage() {
     setEnrollingCourseId(courseId);
     try {
       setError(null);
+
+      // Get the user ID without the 'user_' prefix
+      const userId = user.id.replace('user_', '');
+
       // First check if already enrolled
       const { data: existing, error: existingError } = await supabase
         .from('course_enrollments')
         .select('id')
-        .eq('user_id', user.id)
+        .eq('user_id', userId)
         .eq('course_id', courseId)
         .single();
 
@@ -161,7 +168,7 @@ export default function BrowseCoursesPage() {
         .from('course_enrollments')
         .insert([
           {
-            user_id: user.id,
+            user_id: userId,
             course_id: courseId,
           }
         ]);
@@ -174,7 +181,7 @@ export default function BrowseCoursesPage() {
           .from('chapter_progress')
           .insert([
             {
-              user_id: user.id,
+              user_id: userId,
               course_id: courseId,
               chapter_id: chapter.id,
               completed: false,
@@ -193,7 +200,7 @@ export default function BrowseCoursesPage() {
             .from('user_progress')
             .insert([
               {
-                user_id: user.id,
+                user_id: userId,
                 situation_id: situation.id,
                 completed: false,
                 score: 0,
