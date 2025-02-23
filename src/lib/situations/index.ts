@@ -1,10 +1,15 @@
 import { QuickTrainingSituation, Difficulty } from '../types/situations';
 import { socialSituations } from '@/lib/situations/social';
+import { healthSituations } from '@/lib/situations/health';
 
 // For now, we only have social situations implemented
 const emptySituations: QuickTrainingSituation[] = [];
 
-export const allQuickTrainingSituations = socialSituations;
+// Combine all situation types
+export const allQuickTrainingSituations = [
+  ...socialSituations,
+  ...healthSituations
+];
 
 export const situationsByCategory = {
   professional: emptySituations,

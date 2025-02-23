@@ -1,7 +1,7 @@
 import { LucideIcon } from 'lucide-react';
 import { QuickTrainingSituation } from './situations';
 
-export type CourseCategory = 'communication' | 'professional' | 'personal';
+export type CourseCategory = 'communication' | 'professional' | 'personal' | 'health' | 'mental-health';
 
 export interface CourseChapter {
   id: string;

@@ -195,7 +195,7 @@ export default function CourseDetail({ course }: Props) {
                         </p>
                       </div>
                       <Link
-                        href={`/courses/${course.id}/chapters/${index + 1}`}
+                        href={`/courses/${course.id}/chapters/${chapter.id}`}
                         className="ml-6 inline-flex items-center bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#219653] transition-all transform hover:scale-105"
                       >
                         Start Chapter

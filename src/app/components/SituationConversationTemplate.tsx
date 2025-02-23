@@ -4,6 +4,7 @@ import { ArrowLeft, MessageCircle, Target, UserCircle2, Volume2 } from 'lucide-r
 import Link from 'next/link';
 import { QuickTrainingSituation } from '@/lib/types/situations';
 import { difficultyColors } from '@/lib/constants/colors';
+import { useParams } from 'next/navigation';
 
 interface SituationConversationTemplateProps {
   situation: QuickTrainingSituation;
@@ -20,7 +21,19 @@ export default function SituationConversationTemplate({
   isConnected = false,
   children
 }: SituationConversationTemplateProps) {
+  const params = useParams();
+  const courseId = params.courseId as string;
+  const chapterId = params.chapterId as string;
+  
   const difficultyStyle = difficultyColors[situation.difficulty];
+
+  // Determine back link and text based on context
+  const backLink = courseId && chapterId 
+    ? `/courses/${courseId}/chapters/${chapterId}`
+    : '/quick-training';
+  const backText = courseId && chapterId
+    ? 'Back to Chapter'
+    : 'Back to Quick Training';
 
   return (
     <main className="min-h-screen bg-[#ECF0F1]">
@@ -28,11 +41,11 @@ export default function SituationConversationTemplate({
         {/* Header with back button */}
         <div className="mb-8">
           <Link 
-            href="/quick-training"
+            href={backLink}
             className="inline-flex items-center text-[#7F8C8D] hover:text-[#2C3E50] transition-colors"
           >
             <ArrowLeft size={20} className="mr-2" />
-            Back to Quick Training
+            {backText}
           </Link>
         </div>
 

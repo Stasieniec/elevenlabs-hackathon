@@ -1,6 +1,6 @@
 export type Difficulty = 'easy' | 'medium' | 'hard';
 
-export type Category = 'professional' | 'social' | 'family' | 'identity' | 'fun';
+export type Category = 'professional' | 'social' | 'family' | 'identity' | 'fun' | 'health' | 'mental-health';
 
 export type VoiceType = 'male' | 'female';
 
