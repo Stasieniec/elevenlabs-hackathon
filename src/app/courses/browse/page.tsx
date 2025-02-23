@@ -66,15 +66,53 @@ export default function BrowseCoursesPage() {
     setEnrollingCourseId(courseId);
     try {
       setError(null);
-      const { error: supabaseError } = await supabase
+
+      // Get the static course data which contains chapters and situations
+      const staticCourse = courses.find(c => c.id === courseId);
+      if (!staticCourse) {
+        throw new Error('Course not found in static data');
+      }
+
+      // 1. Delete conversation performances
+      const { error: conversationError } = await supabase
+        .from('conversation_performances')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('course_id', courseId);
+
+      if (conversationError) throw conversationError;
+
+      // 2. Delete user progress for all situations in this course
+      const { error: progressError } = await supabase
+        .from('user_progress')
+        .delete()
+        .eq('user_id', user.id)
+        .in(
+          'situation_id', 
+          staticCourse.chapters.flatMap(chapter => 
+            chapter.situations.map(situation => situation.id)
+          )
+        );
+
+      if (progressError) throw progressError;
+
+      // 3. Delete chapter progress
+      const { error: chapterError } = await supabase
+        .from('chapter_progress')
+        .delete()
+        .eq('user_id', user.id)
+        .eq('course_id', courseId);
+
+      if (chapterError) throw chapterError;
+
+      // 4. Finally delete course enrollment
+      const { error: deleteError } = await supabase
         .from('course_enrollments')
         .delete()
         .eq('user_id', user.id)
         .eq('course_id', courseId);
 
-      if (supabaseError) {
-        throw supabaseError;
-      }
+      if (deleteError) throw deleteError;
 
       setEnrolledCourseIds(prev => prev.filter(id => id !== courseId));
     } catch (err) {
