@@ -142,11 +142,18 @@ export default function BrowseCoursesPage() {
         return;
       }
 
-      // Start a transaction to create all necessary records
+      // Check if course is enrollable
       const course = courses.find(c => c.id === courseId);
       if (!course) {
         throw new Error('Course not found');
       }
+
+      if (!course.isEnrollable) {
+        setError('This course is not available for enrollment yet');
+        return;
+      }
+
+      // Start a transaction to create all necessary records
 
       // 1. Create course enrollment
       const { error: enrollmentError } = await supabase
@@ -372,7 +379,7 @@ export default function BrowseCoursesPage() {
                               <Trash2 size={20} />
                               <span>{isEnrolling ? 'Processing...' : 'Unenroll'}</span>
                             </button>
-                          ) : (
+                          ) : course.isEnrollable ? (
                             <button
                               onClick={() => handleEnroll(course.id)}
                               disabled={isEnrolling}
@@ -387,6 +394,10 @@ export default function BrowseCoursesPage() {
                                 {isEnrolling ? 'Enrolling...' : 'Enroll Now'}
                               </span>
                             </button>
+                          ) : (
+                            <span className="text-gray-500 font-medium px-4 py-2">
+                              Coming Soon
+                            </span>
                           )}
                         </div>
                       </div>
