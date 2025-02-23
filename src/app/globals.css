@@ -10,19 +10,7 @@
 body {
   color: rgb(var(--foreground-rgb));
   background: rgb(var(--background-rgb));
-  isolation: isolate;
-  position: relative;
-  z-index: 1;
-}
-
-/* Reset any browser extension styles */
-body > div {
-  all: revert;
-}
-
-/* Isolate app styles from browser extensions */
-#app-root {
-  isolation: isolate;
-  position: relative;
-  z-index: 1;
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
 } 
