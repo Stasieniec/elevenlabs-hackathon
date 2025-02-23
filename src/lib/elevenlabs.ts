@@ -22,19 +22,6 @@ export type WebSocketMessage = {
   data: Record<string, unknown>;
 };
 
-type ApiResponse<T> = {
-  data: T;
-  error?: string;
-};
-
-type AgentResponse = {
-  agent_id: string;
-};
-
-type WebsocketResponse = {
-  url: string;
-};
-
 export async function createAgent(config: ConversationConfig): Promise<string> {
   const response = await fetch('https://api.elevenlabs.io/v1/agent', {
     method: 'POST',
