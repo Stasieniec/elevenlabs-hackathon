@@ -1,9 +1,5 @@
 import { Message } from './conversation';
 
-if (!process.env.ELEVENLABS_API_KEY) {
-  throw new Error('Missing ELEVENLABS_API_KEY');
-}
-
 export type ConversationConfig = {
   agent: {
     prompt: {
