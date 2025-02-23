@@ -7,7 +7,7 @@ const isPublicRoute = createRouteMatcher([
   '/_next(.*)',
   '/favicon.ico',
   '/api/trpc(.*)',
-  '/api/(.*)'
+  '/api/(.*)' 
 ]);
 
 // Define routes that are allowed even without completing onboarding
@@ -26,9 +26,13 @@ function debugClerkKeys() {
   const secretKey = process.env.CLERK_SECRET_KEY || '';
   const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
   
+  // Enhanced debug logging
   console.log('Clerk Key Debug Info:', {
     secretKeyPrefix: secretKey.startsWith('sk_test_') ? 'sk_test_' : secretKey.startsWith('sk_live_') ? 'sk_live_' : 'invalid_prefix',
     secretKeyLength: secretKey.length,
+    secretKeyFirstChars: secretKey ? `${secretKey.slice(0, 3)}...` : 'empty',
+    secretKeyType: typeof secretKey,
+    secretKeyExists: !!process.env.CLERK_SECRET_KEY,
     publishableKeyPrefix: publishableKey.startsWith('pk_test_') ? 'pk_test_' : publishableKey.startsWith('pk_live_') ? 'pk_live_' : 'invalid_prefix',
     publishableKeyLength: publishableKey.length,
     environment: process.env.NODE_ENV,
@@ -37,7 +41,16 @@ function debugClerkKeys() {
     hasClerkApiVersion: !!process.env.CLERK_API_VERSION,
     hasClerkJwtKey: !!process.env.CLERK_JWT_KEY,
     frontendApi: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || '',
+    // Additional environment checks
+    vercelEnv: process.env.VERCEL_ENV || 'not_set',
+    isVercel: !!process.env.VERCEL,
+    nodeEnv: process.env.NODE_ENV,
   });
+
+  // Log warning if secret key looks invalid
+  if (secretKey.length < 20) {
+    console.warn('WARNING: Clerk secret key appears to be invalid or truncated');
+  }
 }
 
 // Protect all routes except public ones and static files
