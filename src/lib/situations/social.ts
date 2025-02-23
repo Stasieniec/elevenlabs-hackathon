@@ -16,20 +16,27 @@ const callCenterSituation = processSituationTemplate(
   "female"
 );
 
+// Process the other situations
+const endConversationSituation = processSituationTemplate(
+  socialTemplates[1],
+  undefined,
+  "easy"
+);
+
+const startupPitchSituation = processSituationTemplate(
+  socialTemplates[2],
+  undefined,
+  "hard"
+);
+
+const meetingParentsSituation = processSituationTemplate(
+  socialTemplates[3],
+  undefined,
+  "hard"
+);
+
 // All other situations marked as coming soon
 const placeholderSituations: QuickTrainingSituation[] = [
-  {
-    id: "meeting-parents",
-    title: "Meeting Partner's Parents",
-    description: "Navigate the delicate first meeting with your partner's family",
-    icon: "users",
-    context: "[Coming Soon] You're meeting your partner's traditional parents for the first time at a formal dinner",
-    userGoal: "Make a good impression while staying true to yourself",
-    aiRole: "Conservative parent with high expectations and subtle judgment",
-    difficulty: "hard",
-    category: "social",
-    tags: ["family", "relationships", "first-impressions"]
-  },
   {
     id: "split-bill",
     title: "Splitting the Bill",
@@ -41,18 +48,6 @@ const placeholderSituations: QuickTrainingSituation[] = [
     difficulty: "medium",
     category: "social",
     tags: ["money", "friends", "conflict-resolution"]
-  },
-  {
-    id: "end-conversation",
-    title: "Ending a Boring Conversation",
-    description: "Gracefully exit an endless conversation at a party",
-    icon: "door-open",
-    context: "[Coming Soon] You're stuck talking to someone who won't stop discussing their crypto investments",
-    userGoal: "End the conversation without being obviously rude",
-    aiRole: "Overly enthusiastic crypto evangelist who doesn't pick up on social cues",
-    difficulty: "easy",
-    category: "social",
-    tags: ["conversation", "boundaries", "social-skills"]
   },
   {
     id: "coming-out-liberal",
@@ -91,18 +86,6 @@ const placeholderSituations: QuickTrainingSituation[] = [
     tags: ["food", "values", "social-pressure"]
   },
   {
-    id: "startup-pitch",
-    title: "Startup Pitch",
-    description: "Pitch your revolutionary AI-powered toaster",
-    icon: "presentation",
-    context: "[Coming Soon] You're pitching your startup that puts ChatGPT in a toaster",
-    userGoal: "Convince investors with a straight face that this is the next big thing",
-    aiRole: "Skeptical investor who asks surprisingly practical questions",
-    difficulty: "hard",
-    category: "social",
-    tags: ["business", "humor", "presentation"]
-  },
-  {
     id: "job-rejection",
     title: "Handling Job Rejection",
     description: "Maintain professionalism after a disappointing outcome",
@@ -130,5 +113,8 @@ const placeholderSituations: QuickTrainingSituation[] = [
 
 export const socialSituations: QuickTrainingSituation[] = [
   callCenterSituation,
+  endConversationSituation,
+  startupPitchSituation,
+  meetingParentsSituation,
   ...placeholderSituations
 ]; 

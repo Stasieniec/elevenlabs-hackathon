@@ -9,14 +9,16 @@ export function processSituationTemplate(
   voice?: VoiceType
 ): QuickTrainingSituation {
   // Use provided variables or default values
-  const processedVars = template.variables.reduce((acc, variable) => {
+  const processedVars = template.variables?.reduce((acc, variable) => {
     acc[variable.name] = variables?.[variable.name] ?? variable.defaultValue ?? '';
     return acc;
-  }, {} as TemplateVariables);
+  }, {} as TemplateVariables) ?? {};
 
   // Replace variables in strings
   const processString = (str: string) => {
-    return str.replace(/\{(\w+)\}/g, (_, key) => processedVars[key] || '');
+    return template.variables 
+      ? str.replace(/\{(\w+)\}/g, (_, key) => processedVars[key] || '')
+      : str;
   };
 
   return {

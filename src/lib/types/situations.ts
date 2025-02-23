@@ -29,7 +29,7 @@ export interface CustomSituation extends BaseSituation {
 
 export interface SituationTemplate extends BaseSituation {
   category: Category;
-  variables: {
+  variables?: {
     name: string;
     description: string;
     defaultValue?: string;
