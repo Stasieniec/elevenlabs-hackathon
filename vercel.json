@@ -3,12 +3,5 @@
   "framework": "nextjs",
   "buildCommand": "npm run build",
   "devCommand": "npm run dev",
-  "installCommand": "npm install",
-  "env": {
-    "NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY": "REQUIRED",
-    "CLERK_SECRET_KEY": "REQUIRED",
-    "ELEVENLABS_MODEL_ID": "REQUIRED",
-    "ELEVENLABS_WEBSOCKET_URL": "REQUIRED",
-    "NEXT_PUBLIC_APP_URL": "REQUIRED"
-  }
+  "installCommand": "npm install"
 } 
