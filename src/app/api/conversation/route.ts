@@ -35,6 +35,7 @@ export async function POST(req: NextRequest) {
 
     // Get user metadata from Clerk
     const user = await clerk.users.getUser(authRequest.userId);
+    const freeConversationsLeft = (user.unsafeMetadata?.freeConversationsLeft as number) ?? 3;
     
     // Check if user has their own API keys and free conversations
     const { data: userKeys } = await supabase
@@ -45,8 +46,6 @@ export async function POST(req: NextRequest) {
 
     // If user doesn't have their own keys, check free conversations
     if (!userKeys?.elevenlabs_api_key_encrypted) {
-      const freeConversationsLeft = (user.unsafeMetadata?.freeConversationsLeft as number) ?? 3;
-      
       if (freeConversationsLeft <= 0) {
         return NextResponse.json({ 
           error: 'You have used all your free conversations. Please add your own API keys in settings to continue.' 
@@ -72,14 +71,15 @@ export async function POST(req: NextRequest) {
     if (apiKeysError) {
       console.error('Error fetching API keys:', apiKeysError);
       return NextResponse.json(
-        { error: 'Please set up your API keys in settings first' },
+        { error: 'Error fetching API keys' },
         { status: 400 }
       );
     }
 
-    if (!apiKeys?.elevenlabs_api_key_encrypted) {
+    // Only block if no API keys AND no free conversations
+    if (!apiKeys?.elevenlabs_api_key_encrypted && freeConversationsLeft <= 0) {
       return NextResponse.json(
-        { error: 'Please set up your ElevenLabs API key in settings first' },
+        { error: 'Please set up your API keys in settings or use your free conversations' },
         { status: 400 }
       );
     }

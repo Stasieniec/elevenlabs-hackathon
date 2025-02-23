@@ -256,6 +256,8 @@ export default function SettingsPage() {
         throw new Error('No API keys found to delete');
       }
 
+      console.log('Found existing keys:', existingKeys);
+
       // Delete the API keys from Supabase
       const { error: deleteError } = await supabase
         .from('user_api_keys')
@@ -267,7 +269,24 @@ export default function SettingsPage() {
         throw deleteError;
       }
 
-      console.log('Successfully deleted API keys');
+      // Verify deletion
+      const { data: verifyKeys, error: verifyError } = await supabase
+        .from('user_api_keys')
+        .select('*')
+        .eq('user_id', user.id)
+        .single();
+
+      if (verifyError && verifyError.code !== 'PGRST116') {
+        console.error('Error verifying deletion:', verifyError);
+        throw new Error('Failed to verify key deletion');
+      }
+
+      if (verifyKeys) {
+        console.error('Keys still exist after deletion!');
+        throw new Error('Failed to delete API keys - they still exist in the database');
+      }
+
+      console.log('Successfully verified keys are deleted');
 
       // Reset all key-related states
       setElevenLabsKey('');
@@ -282,18 +301,17 @@ export default function SettingsPage() {
       // Show success message
       setSuccessMessage('API keys deleted successfully');
 
-      // Reset free conversations counter if needed
-      if (user.unsafeMetadata?.freeConversationsLeft === 0) {
-        console.log('Resetting free conversations counter');
-        await clerk.user?.update({
-          unsafeMetadata: {
-            ...user.unsafeMetadata,
-            freeConversationsLeft: 3
-          }
-        });
-      }
+      // Update Clerk metadata to indicate no API keys and reset free conversations
+      await clerk.user?.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          hasApiKeys: false,
+          freeConversationsLeft: 3
+        }
+      });
 
-      // Force a session refresh to ensure all states are updated
+      // Force a session refresh
+      await user.reload();
       if (clerk.session) {
         await clerk.session.touch();
       }
@@ -301,8 +319,8 @@ export default function SettingsPage() {
       // Force reload all data
       await loadApiKeys();
       
-      // Hard reload the page to ensure all states are reset
-      window.location.href = '/dashboard';
+      // Hard redirect to dashboard with cache busting
+      window.location.href = `/dashboard?t=${Date.now()}`;
     } catch (err) {
       console.error('Error in handleDeleteKeys:', err);
       setError(err instanceof Error ? err.message : 'Failed to delete API keys');

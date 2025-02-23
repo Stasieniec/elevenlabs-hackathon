@@ -88,6 +88,7 @@ export async function POST(request: NextRequest) {
 
     // Get user metadata from Clerk
     const user = await clerk.users.getUser(authRequest.userId);
+    const freeConversationsLeft = (user.unsafeMetadata?.freeConversationsLeft as number) ?? 3;
     
     // Check if user has their own API keys and free conversations
     const { data: userKeys } = await supabase
@@ -98,8 +99,6 @@ export async function POST(request: NextRequest) {
 
     // If user doesn't have their own keys, check free conversations
     if (!userKeys?.fal_ai_api_key_encrypted) {
-      const freeConversationsLeft = (user.unsafeMetadata?.freeConversationsLeft as number) ?? 3;
-      
       if (freeConversationsLeft <= 0) {
         return NextResponse.json({ 
           error: 'You have used all your free conversations. Please add your own API keys in settings to continue.' 
@@ -132,6 +131,14 @@ export async function POST(request: NextRequest) {
     if (apiKeysError && apiKeysError.code !== 'PGRST116') {
       console.error('Error fetching API keys:', apiKeysError);
       return NextResponse.json({ error: 'Failed to fetch API keys' }, { status: 500 });
+    }
+
+    // Only block if no API keys AND no free conversations
+    if (!apiKeys?.fal_ai_api_key_encrypted && freeConversationsLeft <= 0) {
+      return NextResponse.json(
+        { error: 'Please set up your API keys in settings or use your free conversations' },
+        { status: 400 }
+      );
     }
 
     // Use admin key if user doesn't have their own keys

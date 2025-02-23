@@ -3,15 +3,38 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Menu, X, Home, BookOpen, Zap, Settings, Plus, Search } from 'lucide-react';
-import { UserButton, useAuth } from '@clerk/nextjs';
+import { UserButton, useAuth, useUser } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import { Tooltip } from '@/app/components/Tooltip';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const { isSignedIn } = useAuth();
+  const { user } = useUser();
   const supabase = useSupabaseAuth();
   const [hasApiKeys, setHasApiKeys] = useState(false);
+  const [freeConversationsLeft, setFreeConversationsLeft] = useState(3);
+
+  // Effect for free conversations count
+  useEffect(() => {
+    const updateFreeConversations = async () => {
+      if (!user) return;
+      
+      try {
+        // Force reload user to get fresh metadata
+        const updatedUser = await user.reload();
+        const conversationsLeft = updatedUser?.unsafeMetadata?.freeConversationsLeft as number ?? 3;
+        setFreeConversationsLeft(conversationsLeft);
+      } catch (err) {
+        console.error('Error updating free conversations:', err);
+      }
+    };
+
+    updateFreeConversations();
+    // Check every 2 seconds for updates
+    const interval = setInterval(updateFreeConversations, 2000);
+    return () => clearInterval(interval);
+  }, [user]);
 
   useEffect(() => {
     const checkApiKeys = async () => {
@@ -46,9 +69,10 @@ export default function Navigation() {
   ];
 
   const renderMenuItem = (item: typeof menuItems[0]) => {
-    if (item.requiresKeys && !hasApiKeys) {
+    // Only disable if both conditions are true: no API keys AND no free conversations
+    if (item.requiresKeys && !hasApiKeys && freeConversationsLeft <= 0) {
       return (
-        <Tooltip content="Please set up your API keys in Settings first">
+        <Tooltip content="Add API keys or use free conversations to access this feature">
           <span className="flex items-center space-x-3 px-4 py-3 text-gray-400 cursor-not-allowed">
             <item.icon size={20} />
             <span>{item.name}</span>
