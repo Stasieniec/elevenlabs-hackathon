@@ -3,7 +3,7 @@
 import React, { useCallback } from 'react';
 import { UserButton, SignedIn, SignedOut, SignInButton } from "@clerk/nextjs";
 import Link from 'next/link';
-import { ArrowRight, Users, Target, Crown, GraduationCap, Scroll, Star, Briefcase, Heart, ShieldCheck, Handshake, Presentation, Swords, BarChart, Shield, Trophy, Mail, ChevronDown } from 'lucide-react';
+import { ArrowRight, Users, Target, Crown, GraduationCap, Scroll, Star, Briefcase, Heart, Shield, Presentation, Sword, BarChart, Mail, ChevronDown, Award } from 'lucide-react';
 import VideoPlayer from './components/VideoPlayer';
 import ClientOnly from './components/ClientOnly';
 
@@ -14,10 +14,10 @@ function ScrollButton({ onClick }: { onClick: () => void }) {
       onClick={onClick}
       className="flex flex-col items-center animate-bounce cursor-pointer group mx-auto"
     >
-      <span className="text-[#34495E] mb-2 group-hover:text-[#27AE60] transition-colors">
+      <span className="text-neutral mb-2 group-hover:text-primary transition-colors">
         Learn More
       </span>
-      <ChevronDown className="w-6 h-6 text-[#27AE60]" />
+      <ChevronDown className="w-6 h-6 text-primary" />
     </button>
   );
 }
@@ -30,10 +30,10 @@ function NavCard({ title, description, href }: {
   return (
     <Link 
       href={href}
-      className="block p-6 bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-200"
+      className="card"
     >
-      <h2 className="text-[#34495E] text-xl font-semibold mb-2">{title}</h2>
-      <p className="text-gray-600">{description}</p>
+      <h2 className="text-neutral-dark text-xl font-semibold mb-2">{title}</h2>
+      <p className="text-neutral">{description}</p>
     </Link>
   );
 }
@@ -48,29 +48,29 @@ function TimelineCard({ era, year, figure, icon, description }: {
   return (
     <div className="relative bg-white p-6 rounded-xl shadow-lg hover:shadow-xl transition-all group">
       {/* Connector to timeline */}
-      <div className="absolute left-1/2 -top-4 w-0.5 h-4 bg-[#27AE60]" />
+      <div className="absolute left-1/2 -top-4 w-0.5 h-4 bg-primary" />
       
       {/* Era badge */}
-      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-[#F39C12] text-white text-sm px-3 py-1 rounded-full">
+      <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 bg-secondary text-white text-sm px-3 py-1 rounded-full">
         {era}
       </div>
       
       <div className="mt-4 text-center">
-        <div className="inline-block p-3 rounded-full bg-[#ECF0F1] group-hover:bg-[#27AE60] transition-colors mb-4">
-          <div className="text-[#2C3E50] group-hover:text-white transition-colors">
+        <div className="inline-block p-3 rounded-full bg-neutral-light group-hover:bg-primary transition-colors mb-4">
+          <div className="text-neutral-dark group-hover:text-white transition-colors">
             {icon}
           </div>
         </div>
         
-        <div className="text-sm text-[#F39C12] font-medium mb-2">
+        <div className="text-sm text-secondary font-medium mb-2">
           {year}
         </div>
         
-        <h3 className="text-xl font-semibold text-[#2C3E50] mb-2">
+        <h3 className="text-xl font-semibold text-neutral-dark mb-2">
           {figure}
         </h3>
         
-        <p className="text-gray-600 text-sm">
+        <p className="text-neutral text-sm">
           {description}
         </p>
       </div>
@@ -86,12 +86,12 @@ function PromiseCard({ icon, title, points }: {
   return (
     <div className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all group border border-gray-100">
       <div className="flex items-center mb-6">
-        <div className="p-3 rounded-lg bg-[#27AE60]/10 group-hover:bg-[#27AE60]/20 transition-colors">
-          <div className="text-[#27AE60]">
+        <div className="p-3 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+          <div className="text-primary">
             {icon}
           </div>
         </div>
-        <h3 className="text-xl font-semibold text-[#2C3E50] ml-4 group-hover:text-[#27AE60] transition-colors">
+        <h3 className="text-xl font-semibold text-neutral-dark ml-4 group-hover:text-primary transition-colors">
           {title}
         </h3>
       </div>
@@ -100,9 +100,9 @@ function PromiseCard({ icon, title, points }: {
         {points.map((point, index) => (
           <li key={index} className="flex items-start">
             <div className="mr-2 mt-1.5">
-              <div className="w-1.5 h-1.5 rounded-full bg-[#27AE60]" />
+              <div className="w-1.5 h-1.5 rounded-full bg-primary" />
             </div>
-            <span className="text-[#34495E] text-sm">
+            <span className="text-neutral text-sm">
               {point}
             </span>
           </li>
@@ -128,7 +128,7 @@ export default function HomeContent() {
       <div className="min-h-screen">
         <SignedIn>
           {/* Authenticated View */}
-          <nav className="bg-[#2C3E50] p-4">
+          <nav className="bg-neutral-dark p-4">
             <div className="container mx-auto flex justify-between items-center">
               <h1 className="text-white text-2xl font-bold">Oratoria</h1>
               <UserButton afterSignOutUrl="/"/>
@@ -164,9 +164,9 @@ export default function HomeContent() {
         <SignedOut>
           <nav className="bg-white shadow-sm fixed w-full z-50">
             <div className="container mx-auto flex justify-between items-center h-16 px-4">
-              <h1 className="text-[#2C3E50] text-2xl font-bold">Oratoria</h1>
+              <h1 className="text-neutral-dark text-2xl font-bold">Oratoria</h1>
               <SignInButton mode="modal">
-                <button className="bg-[#27AE60] text-white px-5 py-1.5 rounded-lg hover:bg-[#27AE60]/90 transition-colors text-base font-semibold">
+                <button className="btn btn-primary">
                   Sign In
                 </button>
               </SignInButton>
@@ -175,27 +175,27 @@ export default function HomeContent() {
 
           <main>
             {/* Hero Section */}
-            <section className="relative min-h-screen bg-[#ECF0F1] pt-16 flex flex-col">
+            <section className="relative min-h-screen bg-neutral-light pt-16 flex flex-col">
               {/* Background gradient circles */}
               <div className="absolute inset-0">
-                <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-gradient-to-r from-[#27AE60]/10 to-[#27AE60]/5 blur-2xl" />
-                <div className="absolute top-40 right-20 w-48 h-48 rounded-full bg-gradient-to-r from-[#F39C12]/10 to-[#F39C12]/5 blur-2xl" />
-                <div className="absolute bottom-20 left-1/3 w-56 h-56 rounded-full bg-gradient-to-r from-[#27AE60]/10 to-[#27AE60]/5 blur-2xl" />
+                <div className="absolute top-20 left-20 w-64 h-64 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 blur-2xl" />
+                <div className="absolute top-40 right-20 w-48 h-48 rounded-full bg-gradient-to-r from-secondary/10 to-secondary/5 blur-2xl" />
+                <div className="absolute bottom-20 left-1/3 w-56 h-56 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 blur-2xl" />
               </div>
               
               {/* Main content - centered vertically and horizontally */}
               <div className="flex-grow flex items-center">
                 <div className="container relative mx-auto px-4">
                   <div className="max-w-5xl mx-auto text-center">
-                    <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-[#2C3E50]">
-                      Master the Art of <span className="text-[#27AE60]">Conversation</span>
+                    <h1 className="text-5xl md:text-7xl font-bold mb-6 leading-tight text-neutral-dark">
+                      Master the Art of <span className="text-primary">Conversation</span>
                     </h1>
-                    <p className="text-xl md:text-2xl mb-12 text-[#34495E]">
+                    <p className="text-xl md:text-2xl mb-12 text-neutral">
                       Train like the ancient sophists, powered by modern AI
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-5xl mx-auto">
                       <SignInButton mode="modal">
-                        <button className="w-full h-full bg-[#27AE60] text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#27AE60]/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg">
+                        <button className="btn btn-primary w-full h-full px-6 py-4 text-lg inline-flex flex-col items-center justify-center gap-2 shadow-lg transform hover:scale-105">
                           <span>Start Your Journey</span>
                           <span className="text-sm opacity-90">Sign up and try it yourself</span>
                         </button>
@@ -203,7 +203,7 @@ export default function HomeContent() {
                       
                       <button 
                         onClick={scrollToVideo}
-                        className="w-full h-full bg-[#F39C12] text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#F39C12]/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg"
+                        className="btn btn-secondary w-full h-full px-6 py-4 text-lg inline-flex flex-col items-center justify-center gap-2 shadow-lg transform hover:scale-105"
                       >
                         <span>See Trailer</span>
                         <span className="text-sm opacity-90">Watch our over-the-top AI-generated masterpiece</span>
@@ -212,7 +212,7 @@ export default function HomeContent() {
                       <Link 
                         href="https://github.com/wasil-dilawari/elevenlabs-hackathon"
                         target="_blank"
-                        className="w-full h-full bg-[#34495E] text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-[#34495E]/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg"
+                        className="bg-neutral text-white px-6 py-4 rounded-xl text-lg font-semibold hover:bg-neutral/90 transition-all transform hover:scale-105 inline-flex flex-col items-center justify-center gap-2 shadow-lg w-full h-full"
                       >
                         <span>Technical Implementation</span>
                         <span className="text-sm opacity-90">AKA how the hell did I make this in less than 30 hours?</span>
@@ -238,10 +238,10 @@ export default function HomeContent() {
                     title="Watch our trailer"
                   />
                   <div className="text-center mt-8">
-                    <h2 className="text-2xl md:text-3xl font-bold text-[#2C3E50] mb-4">
+                    <h2 className="text-2xl md:text-3xl font-bold text-neutral-dark mb-4">
                       The Most Epic AI Training Video Ever Made
                     </h2>
-                    <p className="text-[#34495E] text-lg">
+                    <p className="text-neutral text-lg">
                       Watch this overly dramatic video. Fun fact: it was generated entirely by AI, the only thing I did was writing the script, editing, and logo design!
                     </p>
                   </div>
@@ -288,7 +288,7 @@ export default function HomeContent() {
                     ]}
                   />
                   <PromiseCard
-                    icon={<ShieldCheck className="w-6 h-6" />}
+                    icon={<Shield className="w-6 h-6" />}
                     title="Overcome Social Anxiety"
                     points={[
                       "Practice difficult conversations safely",
@@ -297,7 +297,7 @@ export default function HomeContent() {
                     ]}
                   />
                   <PromiseCard
-                    icon={<Handshake className="w-6 h-6" />}
+                    icon={<Users className="w-6 h-6" />}
                     title="Master Negotiations"
                     points={[
                       "Win deals without compromising relationships",
@@ -373,7 +373,7 @@ export default function HomeContent() {
                   <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
                     <div className="flex items-center mb-6">
                       <div className="p-3 rounded-lg bg-[#27AE60]/10">
-                        <Trophy className="w-6 h-6 text-[#27AE60]" />
+                        <Award className="w-6 h-6 text-[#27AE60]" />
                       </div>
                       <h3 className="text-xl font-semibold ml-4 text-[#2C3E50]">
                         Professional Approach with Oratoria
@@ -382,7 +382,7 @@ export default function HomeContent() {
                     <ul className="space-y-4">
                       <li className="flex items-start text-[#34495E]">
                         <div className="mr-3 mt-1">
-                          <Swords className="w-4 h-4 text-[#27AE60]" />
+                          <Sword className="w-4 h-4 text-[#27AE60]" />
                         </div>
                         <span>Practice specific scenarios repeatedly, like chess players studying positions</span>
                       </li>

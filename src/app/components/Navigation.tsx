@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { Menu, X, Home, BookOpen, Zap, Settings, PlusCircle, Search } from 'lucide-react';
+import { Menu, X, Home, BookOpen, Zap, Settings, Plus, Search } from 'lucide-react';
 import { UserButton } from '@clerk/nextjs';
 
 export default function Navigation() {
@@ -13,7 +13,7 @@ export default function Navigation() {
     { name: 'My Courses', href: '/courses', icon: BookOpen },
     { name: 'Browse Courses', href: '/courses/browse', icon: Search },
     { name: 'Quick Training', href: '/quick-training', icon: Zap },
-    { name: 'Custom Situation', href: '/custom', icon: PlusCircle },
+    { name: 'Custom Situation', href: '/custom', icon: Plus },
     { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
@@ -25,11 +25,11 @@ export default function Navigation() {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => setIsOpen(true)}
-              className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
+              className="p-2 text-neutral hover:text-neutral-dark focus:outline-none"
             >
               <Menu size={24} />
             </button>
-            <Link href="/" className="text-xl font-semibold text-[#2C3E50]">
+            <Link href="/" className="text-xl font-semibold text-neutral-dark">
               Oratoria
             </Link>
           </div>
@@ -47,39 +47,38 @@ export default function Navigation() {
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-300 ease-in-out z-50 ${
+        className={`fixed top-0 left-0 h-full w-64 bg-white shadow-lg transform transition-transform duration-200 ease-in-out z-50 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 flex justify-between items-center border-b">
-          <h2 className="text-xl font-semibold text-[#2C3E50]">Menu</h2>
-          <button
-            onClick={() => setIsOpen(false)}
-            className="p-2 text-gray-600 hover:text-gray-900 focus:outline-none"
-          >
-            <X size={24} />
-          </button>
-        </div>
+        <div className="p-4">
+          <div className="flex justify-between items-center mb-8">
+            <h2 className="text-xl font-semibold text-neutral-dark">Menu</h2>
+            <button
+              onClick={() => setIsOpen(false)}
+              className="p-2 text-neutral hover:text-neutral-dark focus:outline-none"
+            >
+              <X size={24} />
+            </button>
+          </div>
 
-        <nav className="p-4">
-          <ul className="space-y-2">
-            {menuItems.map((item) => {
-              const Icon = item.icon;
-              return (
+          <nav>
+            <ul className="space-y-2">
+              {menuItems.map((item) => (
                 <li key={item.name}>
                   <Link
                     href={item.href}
-                    className="flex items-center space-x-3 p-2 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-[#27AE60] transition-colors"
+                    className="flex items-center px-4 py-2 text-neutral hover:text-primary hover:bg-neutral-light rounded-lg transition-colors"
                     onClick={() => setIsOpen(false)}
                   >
-                    <Icon size={20} />
-                    <span>{item.name}</span>
+                    <item.icon className="w-5 h-5 mr-3" />
+                    {item.name}
                   </Link>
                 </li>
-              );
-            })}
-          </ul>
-        </nav>
+              ))}
+            </ul>
+          </nav>
+        </div>
       </div>
     </>
   );

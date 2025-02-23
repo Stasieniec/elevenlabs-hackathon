@@ -3,7 +3,7 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
+  --foreground-rgb: 52, 73, 94;
   --background-rgb: 236, 240, 241;
   --foreground: rgb(var(--foreground-rgb));
   --background: rgb(var(--background-rgb));
@@ -11,15 +11,45 @@
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-rgb: 26, 32, 44;
+    --foreground-rgb: 236, 240, 241;
+    --background-rgb: 44, 62, 80;
   }
 }
 
-body {
-  color: var(--foreground);
-  background: var(--background);
-  min-height: 100vh;
-  margin: 0;
-  padding: 0;
+@layer base {
+  body {
+    @apply text-neutral min-h-screen m-0 p-0;
+    color: var(--foreground);
+    background: var(--background);
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-neutral-dark font-bold;
+  }
+
+  a {
+    @apply text-primary hover:text-primary-dark transition-colors;
+  }
+
+  button {
+    @apply transition-all duration-200;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-semibold transition-colors duration-200;
+  }
+
+  .btn-primary {
+    @apply bg-primary text-white hover:bg-primary-dark;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-white hover:bg-secondary-dark;
+  }
+
+  .card {
+    @apply bg-white rounded-lg shadow-lg p-6 transition-shadow duration-200 hover:shadow-xl;
+  }
 } 
