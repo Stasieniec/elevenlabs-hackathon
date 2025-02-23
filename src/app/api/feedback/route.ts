@@ -10,6 +10,9 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
 if (!process.env.SUPABASE_SERVICE_ROLE_KEY) {
   throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY');
 }
+if (!process.env.ADMIN_FAL_AI_KEY) {
+  throw new Error('Missing ADMIN_FAL_AI_KEY');
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -82,6 +85,10 @@ export async function POST(request: NextRequest) {
     const body: RequestBody = await request.json();
     const { messages, context, userGoal, aiRole } = body;
 
+    if (!messages || messages.length === 0) {
+      return NextResponse.json({ error: 'No conversation messages provided' }, { status: 400 });
+    }
+
     // Fetch user's API keys
     const { data: apiKeys, error: apiKeysError } = await supabase
       .from('user_api_keys')
@@ -89,24 +96,20 @@ export async function POST(request: NextRequest) {
       .eq('user_id', userId)
       .single();
 
-    if (apiKeysError) {
+    if (apiKeysError && apiKeysError.code !== 'PGRST116') {
       console.error('Error fetching API keys:', apiKeysError);
-      return NextResponse.json(
-        { error: 'Please set up your API keys in settings first' },
-        { status: 400 }
-      );
+      return NextResponse.json({ error: 'Failed to fetch API keys' }, { status: 500 });
     }
 
-    if (!apiKeys?.fal_ai_api_key_encrypted) {
-      return NextResponse.json(
-        { error: 'Please set up your fal.ai API key in settings first' },
-        { status: 400 }
-      );
+    // Use admin key if user doesn't have their own keys
+    const falAiKey = apiKeys?.fal_ai_api_key_encrypted || process.env.ADMIN_FAL_AI_KEY;
+    if (!falAiKey) {
+      return NextResponse.json({ error: 'No valid API key available' }, { status: 500 });
     }
 
-    // Configure fal.ai client with user's key
+    // Configure fal.ai client
     fal.config({
-      credentials: apiKeys.fal_ai_api_key_encrypted
+      credentials: falAiKey
     });
 
     // Fetch user preferences
@@ -118,9 +121,10 @@ export async function POST(request: NextRequest) {
       .limit(1)
       .single();
 
-    if (preferencesError) {
+    if (preferencesError && preferencesError.code !== 'PGRST116') {
       console.error('Error fetching preferences:', preferencesError);
-      return NextResponse.json({ error: 'Failed to fetch user preferences' }, { status: 500 });
+      // Continue without preferences instead of failing
+      console.log('Continuing without user preferences');
     }
 
     // Format conversation for analysis
@@ -130,10 +134,10 @@ export async function POST(request: NextRequest) {
 
     // Replace placeholders in system prompt
     const filledSystemPrompt = SYSTEM_PROMPT
-      .replace('{current_professional_style}', preferences.current_professional_style || 'Not specified')
-      .replace('{desired_professional_style}', preferences.desired_professional_style || 'Not specified')
-      .replace('{current_social_style}', preferences.current_social_style || 'Not specified')
-      .replace('{desired_social_style}', preferences.desired_social_style || 'Not specified');
+      .replace('{current_professional_style}', preferences?.current_professional_style || 'Not specified')
+      .replace('{desired_professional_style}', preferences?.desired_professional_style || 'Not specified')
+      .replace('{current_social_style}', preferences?.current_social_style || 'Not specified')
+      .replace('{desired_social_style}', preferences?.desired_social_style || 'Not specified');
 
     // Prepare the prompt
     const prompt = `
@@ -146,21 +150,34 @@ ${conversation}
 
 Analyze this conversation and provide feedback in the specified JSON format.`;
 
-    // Call fal.ai with Claude 3.5 Sonnet
-    const result = await fal.subscribe("fal-ai/any-llm", {
-      input: {
-        model: "anthropic/claude-3.5-sonnet",
-        prompt,
-        system_prompt: filledSystemPrompt
-      }
-    });
+    try {
+      // Call fal.ai with Claude 3.5 Sonnet
+      const result = await fal.subscribe("fal-ai/any-llm", {
+        input: {
+          model: "anthropic/claude-3.5-sonnet",
+          prompt,
+          system_prompt: filledSystemPrompt
+        }
+      });
 
-    const feedback = JSON.parse(result.data.output);
-    return NextResponse.json(feedback);
+      if (!result?.data?.output) {
+        throw new Error('No output received from fal.ai');
+      }
+
+      const feedback = JSON.parse(result.data.output);
+      return NextResponse.json(feedback);
+    } catch (falError) {
+      console.error('Error calling fal.ai:', falError);
+      return NextResponse.json(
+        { error: 'Failed to generate feedback from AI service' },
+        { status: 500 }
+      );
+    }
   } catch (error) {
     console.error('Feedback generation error:', error);
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred';
     return NextResponse.json(
-      { error: 'Failed to generate feedback' },
+      { error: `Failed to generate feedback: ${errorMessage}` },
       { status: 500 }
     );
   }

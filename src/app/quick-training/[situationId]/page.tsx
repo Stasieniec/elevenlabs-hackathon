@@ -26,6 +26,7 @@ export default function QuickTrainingSession() {
     strongPoints: string[];
     improvementAreas: string[];
   } | null>(null);
+  const [error, setError] = useState<string | null>(null);
   const isGeneratingFeedback = useRef(false);
   const conversationRef = useRef<ReturnType<typeof useConversationManager>>(undefined);
   
@@ -38,6 +39,7 @@ export default function QuickTrainingSession() {
     
     try {
       isGeneratingFeedback.current = true;
+      setError(null);
       await conversationRef.current?.stop();
       setConversationState('analyzing');
       
@@ -53,6 +55,9 @@ export default function QuickTrainingSession() {
       setConversationState('feedback');
     } catch (error) {
       console.error('Error generating feedback:', error);
+      setError(error instanceof Error ? error.message : 'Failed to generate feedback');
+      setConversationState('initial');
+    } finally {
       isGeneratingFeedback.current = false;
     }
   }, [messages, situation?.context, situation?.userGoal, situation?.aiRole]);
@@ -113,6 +118,18 @@ export default function QuickTrainingSession() {
           isConnected={conversationState === 'conversation'}
         >
           <div className="space-y-6">
+            {error && (
+              <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-4">
+                <p className="text-red-700">{error}</p>
+                <button
+                  onClick={handleTryAgain}
+                  className="mt-2 text-red-600 hover:text-red-700 font-medium"
+                >
+                  Try Again
+                </button>
+              </div>
+            )}
+
             {conversationState === 'initial' && (
               <div className="text-center">
                 <button
