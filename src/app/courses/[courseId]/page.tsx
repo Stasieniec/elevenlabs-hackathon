@@ -4,10 +4,11 @@ import CourseDetailPage from './page.client';
 
 type Props = {
   params: { courseId: string };
+  searchParams: { [key: string]: string | string[] | undefined };
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const courseId = params.courseId;
+  const courseId = (await Promise.resolve(params)).courseId;
   const course = courses.find(c => c.id === courseId);
   
   if (!course) {
@@ -22,6 +23,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   };
 }
 
-export default function Page(props: Props) {
-  return <CourseDetailPage {...props} />;
+export default async function Page(props: Props) {
+  const params = await Promise.resolve(props.params);
+  return <CourseDetailPage params={params} />;
 } 
