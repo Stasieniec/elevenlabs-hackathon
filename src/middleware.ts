@@ -24,11 +24,24 @@ export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims } = await auth();
   const { pathname } = request.nextUrl;
 
+  // Handle RSC (React Server Component) requests differently
+  const isRSC = request.headers.get('RSC') === '1' || new URL(request.url).searchParams.has('_rsc');
+  if (isRSC && !userId) {
+    // For RSC requests, return a 401 instead of redirecting
+    return new NextResponse(null, { status: 401 });
+  }
+
   // Handle authentication redirects
   if (!userId && !isPublicRoute(request)) {
-    const redirectUrl = new URL('/sign-in', 'https://accounts.oratoria.me');
-    redirectUrl.searchParams.set('redirect_url', request.url);
-    return NextResponse.redirect(redirectUrl);
+    // For regular requests, redirect to sign in
+    const signInUrl = new URL('/sign-in', 'https://accounts.oratoria.me');
+    signInUrl.searchParams.set('redirect_url', request.url);
+    
+    // Return redirect with appropriate headers
+    const response = NextResponse.redirect(signInUrl);
+    response.headers.set('Access-Control-Allow-Origin', 'https://oratoria.me');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    return response;
   }
 
   // If the user is signed in and trying to access auth pages, redirect to dashboard
@@ -47,7 +60,11 @@ export default clerkMiddleware(async (auth, request) => {
     return NextResponse.redirect(new URL('/onboarding', request.url));
   }
 
-  return NextResponse.next();
+  // Add CORS headers to all responses
+  const response = NextResponse.next();
+  response.headers.set('Access-Control-Allow-Origin', 'https://oratoria.me');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  return response;
 });
 
 // Protect all routes except public ones and static files
