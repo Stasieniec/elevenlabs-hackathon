@@ -13,15 +13,15 @@ ALTER TABLE course_enrollments ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users can view their own enrollments" 
   ON course_enrollments FOR SELECT 
-  USING (auth.uid()::text = user_id);
+  USING (requesting_user_id() = user_id);
 
 CREATE POLICY "Users can enroll in courses" 
   ON course_enrollments FOR INSERT 
-  WITH CHECK (auth.uid()::text = user_id);
+  WITH CHECK (requesting_user_id() = user_id);
 
 CREATE POLICY "Users can unenroll from courses" 
   ON course_enrollments FOR DELETE 
-  USING (auth.uid()::text = user_id);
+  USING (requesting_user_id() = user_id);
 
 -- Add trigger for last_accessed_at
 CREATE OR REPLACE FUNCTION update_last_accessed_at()

@@ -24,11 +24,10 @@ export default function CourseDetail({ course }: Props) {
       if (!user || !supabase) return;
 
       try {
-        const userId = user.id.replace('user_', '');
         const { data, error } = await supabase
           .from('course_enrollments')
           .select('id')
-          .eq('user_id', userId)
+          .eq('user_id', user.id)
           .eq('course_id', course.id)
           .single();
 
@@ -109,10 +108,9 @@ export default function CourseDetail({ course }: Props) {
               onClick={async () => {
                 if (!user || !supabase) return;
                 try {
-                  const userId = user.id.replace('user_', '');
                   await supabase
                     .from('course_enrollments')
-                    .insert({ user_id: userId, course_id: course.id });
+                    .insert({ user_id: user.id, course_id: course.id });
                   setIsEnrolled(true);
                 } catch (err) {
                   console.error('Error enrolling:', err);

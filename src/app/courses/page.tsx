@@ -92,23 +92,20 @@ export default function CoursesPage() {
         throw new Error('Course not found in static data');
       }
 
-      // Get the user ID without the 'user_' prefix
-      const userId = user.id.replace('user_', '');
-
-      // 1. Delete conversation performances
-      const { error: conversationError } = await supabase
-        .from('conversation_performances')
+      // 1. Delete chapter progress first (due to foreign key constraint)
+      const { error: chapterError } = await supabase
+        .from('chapter_progress')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .eq('course_id', courseToUnenroll.id);
 
-      if (conversationError) throw conversationError;
+      if (chapterError) throw chapterError;
 
       // 2. Delete user progress for all situations in this course
       const { error: progressError } = await supabase
         .from('user_progress')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .in(
           'situation_id', 
           staticCourse.chapters.flatMap(chapter => 
@@ -118,20 +115,11 @@ export default function CoursesPage() {
 
       if (progressError) throw progressError;
 
-      // 3. Delete chapter progress
-      const { error: chapterError } = await supabase
-        .from('chapter_progress')
-        .delete()
-        .eq('user_id', userId)
-        .eq('course_id', courseToUnenroll.id);
-
-      if (chapterError) throw chapterError;
-
-      // 4. Finally delete course enrollment
+      // 3. Delete course enrollment (must be last due to foreign key constraints)
       const { error: deleteError } = await supabase
         .from('course_enrollments')
         .delete()
-        .eq('user_id', userId)
+        .eq('user_id', user.id)
         .eq('course_id', courseToUnenroll.id);
 
       if (deleteError) throw deleteError;
