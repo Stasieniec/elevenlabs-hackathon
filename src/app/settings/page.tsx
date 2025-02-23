@@ -240,33 +240,35 @@ export default function SettingsPage() {
   };
 
   return (
-    <main className="min-h-screen bg-[#ECF0F1] pt-16">
+    <main className="min-h-screen bg-[#ECF0F1]">
       <Navigation />
-      <div className="container mx-auto px-4 space-y-12 pb-12">
-        <section>
-          <h2 className="text-3xl font-bold text-neutral-dark mb-6">Settings</h2>
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
-            <h3 className="text-lg font-semibold text-blue-800 mb-2">Important Information About API Keys</h3>
-            <p className="text-blue-700 mb-4">
-              To use the conversation practice features, you&apos;ll need to provide your own API keys for ElevenLabs and fal.ai. 
-              Since these services can be expensive to run, I have to ask users to use their own API keys.
-            </p>
-            <p className="text-blue-700 mb-4">
-              For security, I recommend:
-              1. Creating new API keys specifically for this app
-              2. Deleting the keys after you&apos;re done practicing
-              3. Setting usage limits in both platforms
-            </p>
-            <p className="text-blue-700">
-              Your API keys are encrypted at rest in the database and are only accessible by you. I used encryption and Supabase&apos;s Row Level Security (RLS) 
-              to ensure each user can only access their own keys. Still, if it ends up getting stolen, I&apos;m not responsible - I warned you and I dont have the money to go to court!
-            </p>
-          </div>
-        </section>
+      <div className="md:pl-64 transition-all duration-200">
+        <div className="container mx-auto px-4 py-8 space-y-8 max-w-4xl">
+          <section>
+            <h2 className="text-3xl font-bold text-neutral-dark mb-6">Settings</h2>
+            <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-blue-800 mb-2">Important Information About API Keys</h3>
+              <p className="text-blue-700 mb-4">
+                To use the conversation practice features, you&apos;ll need to provide your own API keys for ElevenLabs and fal.ai. 
+                Since these services can be expensive to run, I have to ask users to use their own API keys.
+              </p>
+              <div className="space-y-2 text-blue-700">
+                <p className="mb-4">For security, I recommend:</p>
+                <ul className="list-disc pl-5 space-y-1">
+                  <li>Creating new API keys specifically for this app</li>
+                  <li>Deleting the keys after you&apos;re done practicing</li>
+                  <li>Setting usage limits in both platforms</li>
+                </ul>
+              </div>
+              <p className="text-blue-700 mt-4">
+                Your API keys are encrypted at rest in the database and are only accessible by you. I used encryption and Supabase&apos;s Row Level Security (RLS) 
+                to ensure each user can only access their own keys. Still, if it ends up getting stolen, I&apos;m not responsible - I warned you and I dont have the money to go to court!
+              </p>
+            </div>
+          </section>
 
-        {/* API Keys Section */}
-        <section>
-          <div className="bg-white rounded-xl p-6">
+          {/* API Keys Section */}
+          <section className="bg-white rounded-xl p-6 shadow-sm">
             <div className="flex items-center gap-3 mb-6">
               <div className="p-2 rounded-lg bg-primary/10">
                 <Key className="w-6 h-6 text-primary" />
@@ -431,11 +433,9 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section>
-          <div className="bg-white rounded-xl p-6">
+          <section className="bg-white rounded-xl p-6 shadow-sm">
             <h3 className="text-xl font-semibold text-neutral-dark mb-4">Developer Options</h3>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -459,8 +459,8 @@ export default function SettingsPage() {
                 </button>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
+        </div>
       </div>
     </main>
   );

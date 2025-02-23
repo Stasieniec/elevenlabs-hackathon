@@ -71,50 +71,50 @@ export default function Navigation() {
 
   return (
     <>
-      {/* Top Bar */}
-      <div className="fixed top-0 left-0 right-0 h-16 bg-white shadow-sm z-40 px-4">
-        <div className="max-w-6xl mx-auto h-full flex justify-between items-center">
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setIsOpen(true)}
-              className="p-2 text-neutral hover:text-neutral-dark focus:outline-none"
-            >
-              <Menu size={24} />
-            </button>
-            <Link href={isSignedIn ? '/dashboard' : '/'} className="text-xl font-semibold text-neutral-dark">
-              Oratoria
-            </Link>
-          </div>
-          <UserButton afterSignOutUrl="/" />
-        </div>
-      </div>
+      {/* Mobile Menu Button */}
+      <button
+        onClick={() => setIsOpen(true)}
+        className="fixed top-4 left-4 p-2 text-neutral hover:text-neutral-dark focus:outline-none md:hidden z-50 bg-white rounded-lg shadow-sm"
+      >
+        <Menu size={24} />
+      </button>
 
-      {/* Overlay */}
+      {/* Overlay - only show on mobile */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40"
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setIsOpen(false)}
         />
       )}
 
       {/* Sidebar */}
       <div
-        className={`fixed top-0 left-0 bottom-0 w-64 bg-white z-50 transform transition-transform duration-200 ease-in-out ${
+        className={`fixed top-0 left-0 bottom-0 w-64 bg-white shadow-lg z-50 transform transition-transform duration-200 ease-in-out md:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
+        {/* Logo and Close Button */}
         <div className="p-4">
-          <div className="flex justify-between items-center mb-8">
-            <span className="text-xl font-semibold text-neutral-dark">Menu</span>
+          <div className="flex justify-between items-center">
+            <Link href={isSignedIn ? '/dashboard' : '/'} className="text-2xl font-bold text-neutral-dark">
+              Oratoria
+            </Link>
             <button
               onClick={() => setIsOpen(false)}
-              className="p-2 text-neutral hover:text-neutral-dark focus:outline-none"
+              className="p-2 text-neutral hover:text-neutral-dark focus:outline-none md:hidden"
             >
               <X size={24} />
             </button>
           </div>
 
-          <nav className="space-y-1">
+          {/* Profile Section */}
+          <div className="mt-6 p-4 bg-gray-50 rounded-lg flex items-center justify-between">
+            <span className="text-sm font-medium text-neutral-dark">Profile</span>
+            <UserButton afterSignOutUrl="/" />
+          </div>
+
+          {/* Navigation */}
+          <nav className="mt-8 space-y-1">
             {menuItems.map((item) => (
               <div key={item.name}>
                 {renderMenuItem(item)}

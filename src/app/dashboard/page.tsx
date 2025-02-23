@@ -64,13 +64,18 @@ export default function DashboardPage() {
   return (
     <main className="min-h-screen bg-[#ECF0F1]">
       <Navigation />
-      <div className="container mx-auto mt-8 px-4 space-y-12 pb-12">
-        {/* Welcome Section */}
-        <section>
-          <h2 className="text-3xl font-bold text-neutral-dark mb-6">Welcome to Oratoria</h2>
-          <p className="text-neutral text-lg mb-8">
-            Master the art of conversation through interactive practice and AI-powered feedback.
-          </p>
+      <div className="md:pl-64 transition-all duration-200">
+        <div className="container mx-auto px-4 py-8 space-y-12">
+          {/* Welcome Section */}
+          <section className="relative overflow-hidden bg-white rounded-2xl p-8 shadow-sm">
+            <div className="relative z-10">
+              <h2 className="text-3xl font-bold text-neutral-dark mb-2">Welcome to Oratoria</h2>
+              <p className="text-neutral text-lg max-w-2xl">
+                Master the art of conversation through interactive practice and AI-powered feedback.
+              </p>
+            </div>
+            <div className="absolute top-0 right-0 w-1/3 h-full bg-gradient-to-l from-primary/5 to-transparent" />
+          </section>
 
           {/* API Keys Notice */}
           {!hasApiKeys && (
@@ -104,126 +109,133 @@ export default function DashboardPage() {
               </Link>
             </div>
           )}
-        </section>
 
-        {/* Quick Access Cards */}
-        <section>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Link 
-              href="/quick-training"
-              className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all group border border-gray-100 flex items-start space-x-6"
-            >
-              <div className="p-4 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
-                <Target className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-neutral-dark mb-2 group-hover:text-primary transition-colors">
-                  Quick Training
-                </h3>
-                <p className="text-neutral">
-                  Practice specific conversation scenarios in short, focused sessions.
-                </p>
-              </div>
-            </Link>
-
-            <Link 
-              href="/custom"
-              className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all group border border-gray-100 flex items-start space-x-6"
-            >
-              <div className="p-4 rounded-lg bg-secondary/10 group-hover:bg-secondary/20 transition-colors">
-                <MessageSquare className="w-8 h-8 text-secondary" />
-              </div>
-              <div>
-                <h3 className="text-xl font-semibold text-neutral-dark mb-2 group-hover:text-secondary transition-colors">
-                  Custom Situation
-                </h3>
-                <p className="text-neutral">
-                  Create and practice your own unique conversation scenarios.
-                </p>
-              </div>
-            </Link>
-          </div>
-        </section>
-
-        {/* My Courses */}
-        <section>
-          <div className="flex justify-between items-center mb-6">
-            <h2 className="text-2xl font-bold text-neutral-dark">My Courses</h2>
-          </div>
-
-          {isLoading ? (
-            <div className="flex items-center justify-center py-12">
-              <Loader2 className="w-8 h-8 text-primary animate-spin" />
-            </div>
-          ) : enrolledCourses.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {enrolledCourses.map((course) => (
+          {/* Quick Access Cards */}
+          <section>
+            <h2 className="text-2xl font-bold text-neutral-dark mb-6">Practice Conversations</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-neutral-dark">Not sure where to start? Try these difficult situations</h3>
                 <Link 
-                  key={course.id}
-                  href={`/courses/${course.id}`}
-                  className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100"
+                  href="/quick-training"
+                  className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all group border border-gray-100 flex items-start space-x-6"
                 >
-                  <div className="flex items-center gap-4 mb-4">
-                    <div 
-                      className="p-3 rounded-lg"
-                      style={{ backgroundColor: `${course.categoryColor}20` }}
-                    >
-                      <course.icon 
-                        className="w-6 h-6"
-                        style={{ color: course.categoryColor }}
-                      />
-                    </div>
-                    <div>
-                      <span 
-                        className="text-sm font-medium px-2 py-1 rounded-full"
-                        style={{ 
-                          backgroundColor: `${course.categoryColor}20`,
-                          color: course.categoryColor
-                        }}
-                      >
-                        {course.category}
-                      </span>
-                    </div>
+                  <div className="p-4 rounded-lg bg-primary/10 group-hover:bg-primary/20 transition-colors">
+                    <Target className="w-8 h-8 text-primary" />
                   </div>
-
-                  <h3 className="text-xl font-semibold text-neutral-dark mb-2">
-                    {course.title}
-                  </h3>
-                  <p className="text-neutral mb-4">
-                    {course.description}
-                  </p>
-
-                  <div className="flex items-center justify-between text-sm text-neutral">
-                    <span className="flex items-center gap-2">
-                      <BookOpen className="w-4 h-4" />
-                      {course.duration}
-                    </span>
-                    <span className="flex items-center gap-2">
-                      <Target className="w-4 h-4" />
-                      {course.difficulty}
-                    </span>
+                  <div>
+                    <h3 className="text-xl font-semibold text-neutral-dark mb-2 group-hover:text-primary transition-colors">
+                      Quick Training
+                    </h3>
+                    <p className="text-neutral">
+                      Practice specific conversation scenarios in short, focused sessions.
+                    </p>
                   </div>
                 </Link>
-              ))}
+              </div>
+
+              <div className="space-y-4">
+                <h3 className="text-lg font-medium text-neutral-dark">Create your own conversation scenario</h3>
+                <Link 
+                  href="/custom"
+                  className="bg-white p-8 rounded-xl shadow-sm hover:shadow-lg transition-all group border border-gray-100 flex items-start space-x-6"
+                >
+                  <div className="p-4 rounded-lg bg-secondary/10 group-hover:bg-secondary/20 transition-colors">
+                    <MessageSquare className="w-8 h-8 text-secondary" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-semibold text-neutral-dark mb-2 group-hover:text-secondary transition-colors">
+                      Custom Situation
+                    </h3>
+                    <p className="text-neutral">
+                      Create and practice your own unique conversation scenarios.
+                    </p>
+                  </div>
+                </Link>
+              </div>
             </div>
-          ) : (
-            <div className="bg-white rounded-xl p-12 text-center">
-              <h3 className="text-xl font-semibold text-neutral-dark mb-4">
-                You haven&apos;t enrolled in any courses yet
-              </h3>
-              <p className="text-neutral mb-8">
-                Start your journey by exploring our available courses and find the ones that match your goals.
-              </p>
-              <Link 
-                href="/courses/browse"
-                className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
-              >
-                Browse Courses
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+          </section>
+
+          {/* My Courses */}
+          <section>
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-2xl font-bold text-neutral-dark">My Courses</h2>
             </div>
-          )}
-        </section>
+
+            {isLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="w-8 h-8 text-primary animate-spin" />
+              </div>
+            ) : enrolledCourses.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {enrolledCourses.map((course) => (
+                  <Link 
+                    key={course.id}
+                    href={`/courses/${course.id}`}
+                    className="bg-white p-6 rounded-xl shadow-sm hover:shadow-lg transition-all border border-gray-100"
+                  >
+                    <div className="flex items-center gap-4 mb-4">
+                      <div 
+                        className="p-3 rounded-lg"
+                        style={{ backgroundColor: `${course.categoryColor}20` }}
+                      >
+                        <course.icon 
+                          className="w-6 h-6"
+                          style={{ color: course.categoryColor }}
+                        />
+                      </div>
+                      <div>
+                        <span 
+                          className="text-sm font-medium px-2 py-1 rounded-full"
+                          style={{ 
+                            backgroundColor: `${course.categoryColor}20`,
+                            color: course.categoryColor
+                          }}
+                        >
+                          {course.category}
+                        </span>
+                      </div>
+                    </div>
+
+                    <h3 className="text-xl font-semibold text-neutral-dark mb-2">
+                      {course.title}
+                    </h3>
+                    <p className="text-neutral mb-4">
+                      {course.description}
+                    </p>
+
+                    <div className="flex items-center justify-between text-sm text-neutral">
+                      <span className="flex items-center gap-2">
+                        <BookOpen className="w-4 h-4" />
+                        {course.duration}
+                      </span>
+                      <span className="flex items-center gap-2">
+                        <Target className="w-4 h-4" />
+                        {course.difficulty}
+                      </span>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-xl p-12 text-center">
+                <h3 className="text-xl font-semibold text-neutral-dark mb-4">
+                  You haven&apos;t enrolled in any courses yet
+                </h3>
+                <p className="text-neutral mb-8">
+                  Start your journey by exploring our available courses and find the ones that match your goals.
+                </p>
+                <Link 
+                  href="/courses/browse"
+                  className="inline-flex items-center gap-2 bg-primary text-white px-6 py-3 rounded-lg font-semibold hover:bg-primary/90 transition-colors"
+                >
+                  Browse Courses
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              </div>
+            )}
+          </section>
+        </div>
       </div>
     </main>
   );
