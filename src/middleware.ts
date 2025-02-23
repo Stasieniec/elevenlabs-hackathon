@@ -21,32 +21,43 @@ const isAllowedWithoutOnboarding = createRouteMatcher([
 ]);
 
 export default clerkMiddleware(async (auth, request) => {
+  // Handle preflight requests
+  if (request.method === 'OPTIONS') {
+    const response = new NextResponse(null, { status: 204 });
+    response.headers.set('Access-Control-Allow-Origin', 'https://accounts.oratoria.me');
+    response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Clerk-CSRF-Token, Authorization');
+    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    response.headers.set('Access-Control-Max-Age', '7200');
+    return response;
+  }
+
   const { userId, sessionClaims } = await auth();
   const { pathname } = request.nextUrl;
 
   // Handle RSC (React Server Component) requests differently
   const isRSC = request.headers.get('RSC') === '1' || new URL(request.url).searchParams.has('_rsc');
   if (isRSC && !userId) {
-    // For RSC requests, return a 401 instead of redirecting
-    return new NextResponse(null, { status: 401 });
+    const response = new NextResponse(null, { status: 401 });
+    addCorsHeaders(response);
+    return response;
   }
 
   // Handle authentication redirects
   if (!userId && !isPublicRoute(request)) {
-    // For regular requests, redirect to sign in
     const signInUrl = new URL('/sign-in', 'https://accounts.oratoria.me');
     signInUrl.searchParams.set('redirect_url', request.url);
     
-    // Return redirect with appropriate headers
     const response = NextResponse.redirect(signInUrl);
-    response.headers.set('Access-Control-Allow-Origin', 'https://oratoria.me');
-    response.headers.set('Access-Control-Allow-Credentials', 'true');
+    addCorsHeaders(response);
     return response;
   }
 
   // If the user is signed in and trying to access auth pages, redirect to dashboard
   if (userId && pathname === '/') {
-    return NextResponse.redirect(new URL('/dashboard', request.url));
+    const response = NextResponse.redirect(new URL('/dashboard', request.url));
+    addCorsHeaders(response);
+    return response;
   }
 
   // Check if user needs to complete onboarding
@@ -57,15 +68,23 @@ export default clerkMiddleware(async (auth, request) => {
     !isAllowedWithoutOnboarding(request) && 
     !isPublicRoute(request)
   ) {
-    return NextResponse.redirect(new URL('/onboarding', request.url));
+    const response = NextResponse.redirect(new URL('/onboarding', request.url));
+    addCorsHeaders(response);
+    return response;
   }
 
-  // Add CORS headers to all responses
   const response = NextResponse.next();
-  response.headers.set('Access-Control-Allow-Origin', 'https://oratoria.me');
-  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  addCorsHeaders(response);
   return response;
 });
+
+// Helper function to add CORS headers
+function addCorsHeaders(response: NextResponse) {
+  response.headers.set('Access-Control-Allow-Origin', 'https://accounts.oratoria.me');
+  response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  response.headers.set('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Clerk-CSRF-Token, Authorization');
+}
 
 // Protect all routes except public ones and static files
 export const config = {

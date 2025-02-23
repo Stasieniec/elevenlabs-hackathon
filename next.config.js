@@ -22,7 +22,7 @@ const nextConfig = {
           },
           {
             key: 'Access-Control-Allow-Headers',
-            value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Clerk-CSRF-Token',
+            value: 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version, X-Clerk-CSRF-Token, Authorization',
           },
           {
             key: 'Access-Control-Allow-Credentials',
@@ -32,6 +32,10 @@ const nextConfig = {
             key: 'Access-Control-Max-Age',
             value: '7200',
           },
+          {
+            key: 'Vary',
+            value: 'Origin',
+          }
         ],
       },
     ];
