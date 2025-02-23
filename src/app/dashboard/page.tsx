@@ -14,6 +14,7 @@ export default function DashboardPage() {
   const supabase = useSupabaseAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<typeof courses>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [hasApiKeys, setHasApiKeys] = useState(false);
 
   // Get onboarding status from Clerk metadata
   const hasCompletedOnboarding = user?.unsafeMetadata?.onboardingComplete as boolean;
@@ -39,6 +40,17 @@ export default function DashboardPage() {
           .filter(course => course !== undefined) as typeof courses;
 
         setEnrolledCourses(enrolledCourseData);
+
+        // Check API keys
+        const { data: apiKeys } = await supabase
+          .from('user_api_keys')
+          .select('elevenlabs_api_key_encrypted, fal_ai_api_key_encrypted')
+          .maybeSingle();
+
+        setHasApiKeys(
+          !!apiKeys?.elevenlabs_api_key_encrypted && 
+          !!apiKeys?.fal_ai_api_key_encrypted
+        );
       } catch (err) {
         console.error('Error fetching user data:', err);
       } finally {
@@ -59,6 +71,25 @@ export default function DashboardPage() {
           <p className="text-neutral text-lg mb-8">
             Master the art of conversation through interactive practice and AI-powered feedback.
           </p>
+
+          {/* API Keys Notice */}
+          {!hasApiKeys && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
+              <h3 className="text-lg font-semibold text-yellow-800 mb-2">Set Up Your API Keys</h3>
+              <p className="text-yellow-700 mb-4">
+                To start practicing conversations, you'll need to set up your API keys for ElevenLabs and fal.ai. 
+                These services provide the AI voice and language processing capabilities for our conversation practice.
+              </p>
+              <Link
+                href="/settings"
+                className="inline-flex items-center gap-2 bg-yellow-600 text-white px-6 py-2 rounded-lg hover:bg-yellow-700 transition-colors"
+              >
+                Set Up API Keys
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            </div>
+          )}
+
           {!hasCompletedOnboarding && (
             <div className="bg-secondary/10 border border-secondary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">

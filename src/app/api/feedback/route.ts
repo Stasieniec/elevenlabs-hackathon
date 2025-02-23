@@ -82,6 +82,33 @@ export async function POST(request: NextRequest) {
     const body: RequestBody = await request.json();
     const { messages, context, userGoal, aiRole } = body;
 
+    // Fetch user's API keys
+    const { data: apiKeys, error: apiKeysError } = await supabase
+      .from('user_api_keys')
+      .select('fal_ai_api_key_encrypted')
+      .eq('user_id', userId)
+      .single();
+
+    if (apiKeysError) {
+      console.error('Error fetching API keys:', apiKeysError);
+      return NextResponse.json(
+        { error: 'Please set up your API keys in settings first' },
+        { status: 400 }
+      );
+    }
+
+    if (!apiKeys?.fal_ai_api_key_encrypted) {
+      return NextResponse.json(
+        { error: 'Please set up your fal.ai API key in settings first' },
+        { status: 400 }
+      );
+    }
+
+    // Configure fal.ai client with user's key
+    fal.config({
+      credentials: apiKeys.fal_ai_api_key_encrypted
+    });
+
     // Fetch user preferences
     const { data: preferences, error: preferencesError } = await supabase
       .from('user_preferences')
@@ -118,11 +145,6 @@ Conversation Transcript:
 ${conversation}
 
 Analyze this conversation and provide feedback in the specified JSON format.`;
-
-    // Configure fal.ai client
-    fal.config({
-      credentials: process.env.FAL_AI_API_KEY
-    });
 
     // Call fal.ai with Claude 3.5 Sonnet
     const result = await fal.subscribe("fal-ai/any-llm", {
