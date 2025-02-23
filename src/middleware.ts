@@ -23,6 +23,7 @@ const isAllowedWithoutOnboarding = createRouteMatcher([
 export default clerkMiddleware(async (auth, request) => {
   const { userId, sessionClaims } = await auth();
   const { pathname } = request.nextUrl;
+  const origin = request.headers.get('origin');
 
   // Add CORS and security headers
   const response = NextResponse.next();
@@ -30,14 +31,18 @@ export default clerkMiddleware(async (auth, request) => {
   // Set CSP headers to allow necessary domains (all in one line to avoid formatting issues)
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io; connect-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io https://o449981.ingest.us.sentry.io wss://*.clerk.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.clerk.com https://*.sentry-cdn.com https://clerk.oratoria.me; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://*.clerk.com https://clerk.oratoria.me; img-src 'self' data: blob: https://*.clerk.com https://*.oratoria.me; frame-src 'self' https://*.clerk.com https://*.oratoria.me; media-src 'self' https://*.clerk.com https://*.oratoria.me"
+    "default-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io; connect-src 'self' https://*.clerk.com https://*.oratoria.me https://*.sentry-cdn.com https://*.sentry.io https://o449981.ingest.us.sentry.io wss://*.clerk.com; script-src 'self' 'unsafe-inline' 'unsafe-eval' blob: https://*.clerk.com https://*.sentry-cdn.com https://clerk.oratoria.me https://*.oratoria.me; worker-src 'self' blob:; style-src 'self' 'unsafe-inline' https://*.clerk.com https://clerk.oratoria.me https://*.oratoria.me; img-src 'self' data: blob: https://*.clerk.com https://*.oratoria.me; frame-src 'self' https://*.clerk.com https://*.oratoria.me; media-src 'self' https://*.clerk.com https://*.oratoria.me"
   );
 
-  // Set CORS headers
-  response.headers.set('Access-Control-Allow-Origin', 'https://oratoria.me');
+  // Set CORS headers - allow both main domain and accounts subdomain
+  const allowedOrigins = ['https://oratoria.me', 'https://accounts.oratoria.me'];
+  if (origin && allowedOrigins.includes(origin)) {
+    response.headers.set('Access-Control-Allow-Origin', origin);
+  }
   response.headers.set('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  response.headers.set('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
   response.headers.set('Access-Control-Allow-Credentials', 'true');
+  response.headers.set('Access-Control-Max-Age', '86400'); // 24 hours
 
   // Handle preflight requests
   if (request.method === 'OPTIONS') {
