@@ -262,7 +262,7 @@ export default function SettingsPage() {
               </div>
               <p className="text-blue-700 mt-4">
                 Your API keys are encrypted at rest in the database and are only accessible by you. I used encryption and Supabase&apos;s Row Level Security (RLS) 
-                to ensure each user can only access their own keys. Still, if it ends up getting stolen, I&apos;m not responsible - I warned you and I dont have the money to go to court!
+                to ensure each user can only access their own keys. Still, if it ends up getting stolen, I&apos;m not responsible - I warned you and I dont have the money to deal with lawsuits!
               </p>
             </div>
           </section>
