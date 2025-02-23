@@ -1,8 +1,10 @@
 import { clerkMiddleware } from "@clerk/nextjs/server";
 
-// Disable debug mode to avoid header encoding issues
+// This example protects all routes including api/trpc routes
+// Please edit this to allow other routes to be public as needed.
+// See https://clerk.com/docs/references/nextjs/auth-middleware for more information about configuring your middleware
 export default clerkMiddleware();
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|_vercel|favicon.ico).*)'],
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 }; 
