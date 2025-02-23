@@ -1,9 +1,8 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
-import { ThumbsUp, ThumbsDown, ArrowRight, Mic, MicOff, Send, Loader2 } from 'lucide-react';
-import { useConversationManager, Message, ConversationConfig } from '@/lib/conversation';
-import { Message as ConversationMessage } from '@/types/conversation';
+import { useState, useRef } from 'react';
+import { ThumbsUp, ThumbsDown, ArrowRight } from 'lucide-react';
+import { useConversationManager, type Message } from '@/lib/conversation';
 
 type ConversationInterfaceProps = {
   context: string;
@@ -26,13 +25,13 @@ export default function ConversationInterface({
   voiceId,
   onConversationEnd 
 }: ConversationInterfaceProps) {
-  const [messages, setMessages] = useState<ConversationMessage[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [feedback, setFeedback] = useState<ConversationFeedback | null>(null);
   const [isGeneratingFeedback, setIsGeneratingFeedback] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const messagesRef = useRef<ConversationMessage[]>([]);
+  const messagesRef = useRef<Message[]>([]);
 
-  const handleMessage = (message: ConversationMessage) => {
+  const handleMessage = (message: Message) => {
     console.log('Received message:', message);
     setMessages(prev => {
       const newMessages = [...prev, message];
@@ -43,7 +42,7 @@ export default function ConversationInterface({
   };
 
   const handleStartConversation = async () => {
-    const emptyMessages: ConversationMessage[] = [];
+    const emptyMessages: Message[] = [];
     setMessages(emptyMessages);
     messagesRef.current = emptyMessages;
     await conversation.start();
@@ -99,7 +98,7 @@ export default function ConversationInterface({
     }
   };
 
-  const config: ConversationConfig = {
+  const config = {
     context,
     userGoal,
     aiRole: aiGoal,
@@ -130,11 +129,11 @@ export default function ConversationInterface({
         </p>
 
         <p className="text-neutral mb-4">
-          &quot;{context}&quot;
+          &ldquo;{context}&rdquo;
         </p>
         <div className="mt-2 text-xs text-gray-500">
           <p>Your goal: {userGoal}</p>
-          <p>AI's role: {aiGoal}</p>
+          <p>AI&apos;s role: {aiGoal}</p>
         </div>
       </div>
 

@@ -77,7 +77,7 @@ export default function DashboardPage() {
             <div className="bg-yellow-50 border border-yellow-200 rounded-xl p-6 mb-8">
               <h3 className="text-lg font-semibold text-yellow-800 mb-2">Set Up Your API Keys</h3>
               <p className="text-yellow-700 mb-4">
-                To start practicing conversations, you'll need to set up your API keys for ElevenLabs and fal.ai. 
+                To start practicing conversations, you&apos;ll need to set up your API keys for ElevenLabs and fal.ai. 
                 These services provide the AI voice and language processing capabilities for our conversation practice.
               </p>
               <Link

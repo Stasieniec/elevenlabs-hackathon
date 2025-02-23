@@ -7,7 +7,13 @@ export type Message = {
 };
 
 export type ConversationConfig = {
-  agent: {
+  context: string;
+  userGoal: string;
+  aiRole: string;
+  voiceId?: string;
+  onMessage?: (message: Message) => void;
+  onDisconnect?: () => void;
+  agent?: {
     prompt: {
       prompt: string;
     };
@@ -15,6 +21,11 @@ export type ConversationConfig = {
     language: string;
   };
 };
+
+type RawMessage = {
+  message: string;
+  source?: 'user' | 'ai';
+} | string;
 
 export type ConversationManager = {
   connect: () => Promise<void>;
@@ -44,7 +55,7 @@ export function useConversationManager(config: ConversationConfig) {
         config.onDisconnect();
       }
     },
-    onMessage: (message: any) => {
+    onMessage: (message: RawMessage) => {
       console.log('Raw message:', message);
       const messageText = typeof message === 'string' ? message : message.message;
       const messageSource = typeof message === 'string' ? 'ai' : message.source || 'user';

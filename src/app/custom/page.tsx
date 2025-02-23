@@ -70,7 +70,7 @@ export default function CustomSituation() {
                   id="context"
                   value={context}
                   onChange={(e) => setContext(e.target.value)}
-                  placeholder="Describe the situation (e.g., 'You're at a networking event in a tech conference...')"
+                  placeholder="Describe the situation (e.g., &apos;You&apos;re at a networking event in a tech conference...&apos;)"
                   className="w-full px-4 py-3 rounded-lg border border-gray-200 focus:outline-none focus:ring-2 focus:ring-[#27AE60] text-[#34495E]"
                   rows={4}
                   required
@@ -94,7 +94,7 @@ export default function CustomSituation() {
 
               <div>
                 <label htmlFor="aiGoal" className="block text-[#2C3E50] font-medium mb-2">
-                  AI Character's Goal
+                  AI Character&apos;s Goal
                 </label>
                 <textarea
                   id="aiGoal"
