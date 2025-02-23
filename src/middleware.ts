@@ -21,6 +21,25 @@ const isAllowedWithoutOnboarding = createRouteMatcher([
   '/api(.*)'
 ]);
 
+// Debug function to safely log key information
+function debugClerkKeys() {
+  const secretKey = process.env.CLERK_SECRET_KEY || '';
+  const publishableKey = process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY || '';
+  
+  console.log('Clerk Key Debug Info:', {
+    secretKeyPrefix: secretKey.startsWith('sk_test_') ? 'sk_test_' : secretKey.startsWith('sk_live_') ? 'sk_live_' : 'invalid_prefix',
+    secretKeyLength: secretKey.length,
+    publishableKeyPrefix: publishableKey.startsWith('pk_test_') ? 'pk_test_' : publishableKey.startsWith('pk_live_') ? 'pk_live_' : 'invalid_prefix',
+    publishableKeyLength: publishableKey.length,
+    environment: process.env.NODE_ENV,
+    // Log other relevant environment variables that might affect Clerk
+    hasClerkApiKey: !!process.env.CLERK_API_KEY,
+    hasClerkApiVersion: !!process.env.CLERK_API_VERSION,
+    hasClerkJwtKey: !!process.env.CLERK_JWT_KEY,
+    frontendApi: process.env.NEXT_PUBLIC_CLERK_FRONTEND_API || '',
+  });
+}
+
 // Protect all routes except public ones and static files
 export const config = {
   matcher: [
@@ -35,6 +54,11 @@ export const config = {
 };
 
 export default clerkMiddleware((auth, request) => {
+  // Log key information on first request
+  if (request.nextUrl.pathname === '/') {
+    debugClerkKeys();
+  }
+
   // Early return for OPTIONS requests
   if (request.method === 'OPTIONS') {
     return NextResponse.next();
