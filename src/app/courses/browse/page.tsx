@@ -226,9 +226,11 @@ export default function BrowseCoursesPage() {
     return (
       <main className="min-h-screen bg-[#ECF0F1]">
         <Navigation />
-        <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
-          <div className="text-center">
-            <p className="text-[#34495E] text-lg">Please sign in to browse courses.</p>
+        <div className="md:pl-64 transition-all duration-200">
+          <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
+            <div className="text-center">
+              <p className="text-[#34495E] text-lg">Please sign in to browse courses.</p>
+            </div>
           </div>
         </div>
       </main>
@@ -239,9 +241,11 @@ export default function BrowseCoursesPage() {
     return (
       <main className="min-h-screen bg-[#ECF0F1]">
         <Navigation />
-        <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
-          <div className="text-center">
-            <p className="text-[#34495E] text-lg">Initializing...</p>
+        <div className="md:pl-64 transition-all duration-200">
+          <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
+            <div className="text-center">
+              <p className="text-[#34495E] text-lg">Initializing...</p>
+            </div>
           </div>
         </div>
       </main>
@@ -252,168 +256,170 @@ export default function BrowseCoursesPage() {
     <main className="min-h-screen bg-[#ECF0F1]">
       <Navigation />
       
-      <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
+      <div className="md:pl-64 transition-all duration-200">
+        <div className="max-w-6xl mx-auto px-4 pt-20 pb-12">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
 
-        <div className="flex items-center space-x-4 mb-8">
-          <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
-            <BookOpen size={32} className="text-[#27AE60]" />
+          <div className="flex items-center space-x-4 mb-8">
+            <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
+              <BookOpen size={32} className="text-[#27AE60]" />
+            </div>
+            <h1 className="text-3xl font-bold text-[#2C3E50]">Browse Courses</h1>
           </div>
-          <h1 className="text-3xl font-bold text-[#2C3E50]">Browse Courses</h1>
-        </div>
 
-        {/* Search and Filters */}
-        <div className="bg-white rounded-xl p-6 shadow-sm mb-8">
-          <div className="flex flex-col md:flex-row gap-4">
-            {/* Search */}
-            <div className="flex-1">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
-                <input
-                  type="text"
-                  placeholder="Search courses..."
-                  className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+          {/* Search and Filters */}
+          <div className="bg-white rounded-xl p-6 shadow-sm mb-8">
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Search */}
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+                  <input
+                    type="text"
+                    placeholder="Search courses..."
+                    className="w-full pl-10 pr-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              {/* Category Filter */}
+              <div className="flex-1">
+                <select
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
+                  value={selectedCategory || ''}
+                  onChange={(e) => setSelectedCategory(e.target.value || null)}
+                  disabled={loading}
+                >
+                  <option value="">All Categories</option>
+                  {categories.map(category => (
+                    <option key={category} value={category}>{category}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Difficulty Filter */}
+              <div className="flex-1">
+                <select
+                  className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
+                  value={selectedDifficulty || ''}
+                  onChange={(e) => setSelectedDifficulty(e.target.value || null)}
+                  disabled={loading}
+                >
+                  <option value="">All Difficulties</option>
+                  {difficulties.map(difficulty => (
+                    <option key={difficulty} value={difficulty}>{difficulty}</option>
+                  ))}
+                </select>
               </div>
             </div>
-            
-            {/* Category Filter */}
-            <div className="flex-1">
-              <select
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
-                value={selectedCategory || ''}
-                onChange={(e) => setSelectedCategory(e.target.value || null)}
-                disabled={loading}
-              >
-                <option value="">All Categories</option>
-                {categories.map(category => (
-                  <option key={category} value={category}>{category}</option>
-                ))}
-              </select>
-            </div>
-
-            {/* Difficulty Filter */}
-            <div className="flex-1">
-              <select
-                className="w-full p-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#27AE60] focus:border-transparent"
-                value={selectedDifficulty || ''}
-                onChange={(e) => setSelectedDifficulty(e.target.value || null)}
-                disabled={loading}
-              >
-                <option value="">All Difficulties</option>
-                {difficulties.map(difficulty => (
-                  <option key={difficulty} value={difficulty}>{difficulty}</option>
-                ))}
-              </select>
-            </div>
           </div>
-        </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-[#34495E] text-lg">Loading courses...</p>
-          </div>
-        ) : (
-          <>
-            {/* Course Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {filteredCourses.map((course) => {
-                const Icon = course.icon;
-                const isEnrolling = enrollingCourseId === course.id.toString();
-                const isEnrolled = enrolledCourseIds.includes(course.id);
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-[#34495E] text-lg">Loading courses...</p>
+            </div>
+          ) : (
+            <>
+              {/* Course Grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {filteredCourses.map((course) => {
+                  const Icon = course.icon;
+                  const isEnrolling = enrollingCourseId === course.id.toString();
+                  const isEnrolled = enrolledCourseIds.includes(course.id);
 
-                return (
-                  <div 
-                    key={course.id}
-                    className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group"
-                  >
-                    <div className="flex items-start space-x-4">
-                      <div className="p-3 rounded-full bg-opacity-10" style={{ backgroundColor: `${course.categoryColor}20` }}>
-                        <Icon size={24} style={{ color: course.categoryColor }} />
-                      </div>
-                      
-                      <div className="flex-1">
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span 
-                            className="text-sm font-medium px-3 py-1 rounded-full" 
-                            style={{ 
-                              backgroundColor: `${course.categoryColor}20`,
-                              color: course.categoryColor
-                            }}
-                          >
-                            {course.category}
-                          </span>
-                          <span className="text-sm text-gray-600 px-3 py-1 bg-gray-100 rounded-full">
-                            {course.difficulty}
-                          </span>
+                  return (
+                    <div 
+                      key={course.id}
+                      className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group"
+                    >
+                      <div className="flex items-start space-x-4">
+                        <div className="p-3 rounded-full bg-opacity-10" style={{ backgroundColor: `${course.categoryColor}20` }}>
+                          <Icon size={24} style={{ color: course.categoryColor }} />
                         </div>
-
-                        <h2 className="text-xl font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">
-                          {course.title}
-                        </h2>
                         
-                        <p className="text-[#34495E] mt-2 line-clamp-2">
-                          {course.description}
-                        </p>
-                        
-                        <div className="mt-4 flex items-center justify-between">
-                          <div className="text-sm text-gray-600">
-                            <span>{course.duration}</span>
-                          </div>
-                          {isEnrolled ? (
-                            <button
-                              onClick={() => setCourseToUnenroll(course)}
-                              disabled={isEnrolling}
-                              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
-                                isEnrolling 
-                                  ? 'bg-gray-400 cursor-not-allowed'
-                                  : 'bg-red-500 hover:bg-red-600'
-                              }`}
+                        <div className="flex-1">
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span 
+                              className="text-sm font-medium px-3 py-1 rounded-full" 
+                              style={{ 
+                                backgroundColor: `${course.categoryColor}20`,
+                                color: course.categoryColor
+                              }}
                             >
-                              <Trash2 size={20} />
-                              <span>{isEnrolling ? 'Processing...' : 'Unenroll'}</span>
-                            </button>
-                          ) : course.isEnrollable ? (
-                            <button
-                              onClick={() => handleEnroll(course.id)}
-                              disabled={isEnrolling}
-                              className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
-                                isEnrolling 
-                                  ? 'bg-gray-400 cursor-not-allowed'
-                                  : 'bg-[#27AE60] hover:bg-[#219653]'
-                              }`}
-                            >
-                              <Plus size={20} />
-                              <span>
-                                {isEnrolling ? 'Enrolling...' : 'Enroll Now'}
-                              </span>
-                            </button>
-                          ) : (
-                            <span className="text-gray-500 font-medium px-4 py-2">
-                              Coming Soon
+                              {course.category}
                             </span>
-                          )}
+                            <span className="text-sm text-gray-600 px-3 py-1 bg-gray-100 rounded-full">
+                              {course.difficulty}
+                            </span>
+                          </div>
+
+                          <h2 className="text-xl font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors">
+                            {course.title}
+                          </h2>
+                          
+                          <p className="text-[#34495E] mt-2 line-clamp-2">
+                            {course.description}
+                          </p>
+                          
+                          <div className="mt-4 flex items-center justify-between">
+                            <div className="text-sm text-gray-600">
+                              <span>{course.duration}</span>
+                            </div>
+                            {isEnrolled ? (
+                              <button
+                                onClick={() => setCourseToUnenroll(course)}
+                                disabled={isEnrolling}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                                  isEnrolling 
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-red-500 hover:bg-red-600'
+                                }`}
+                              >
+                                <Trash2 size={20} />
+                                <span>{isEnrolling ? 'Processing...' : 'Unenroll'}</span>
+                              </button>
+                            ) : course.isEnrollable ? (
+                              <button
+                                onClick={() => handleEnroll(course.id)}
+                                disabled={isEnrolling}
+                                className={`flex items-center space-x-2 px-4 py-2 rounded-lg text-white transition-colors ${
+                                  isEnrolling 
+                                    ? 'bg-gray-400 cursor-not-allowed'
+                                    : 'bg-[#27AE60] hover:bg-[#219653]'
+                                }`}
+                              >
+                                <Plus size={20} />
+                                <span>
+                                  {isEnrolling ? 'Enrolling...' : 'Enroll Now'}
+                                </span>
+                              </button>
+                            ) : (
+                              <span className="text-gray-500 font-medium px-4 py-2">
+                                Coming Soon
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {filteredCourses.length === 0 && (
-              <div className="text-center py-12">
-                <p className="text-[#34495E] text-lg">No courses found matching your criteria.</p>
+                  );
+                })}
               </div>
-            )}
-          </>
-        )}
+
+              {filteredCourses.length === 0 && (
+                <div className="text-center py-12">
+                  <p className="text-[#34495E] text-lg">No courses found matching your criteria.</p>
+                </div>
+              )}
+            </>
+          )}
+        </div>
       </div>
 
       <ConfirmDialog

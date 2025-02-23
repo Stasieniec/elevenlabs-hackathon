@@ -9,10 +9,11 @@ const callCenterSituation = processSituationTemplate(
     product_service: "extending your car's warranty",
     reason_for_rejection: "you don't even own a car",
     negative_outcome: "being rude or losing your temper",
-    caller_type: "telemarketer",
+    caller_type: "female telemarketer",
     sales_tactic: "has a counter-argument for every objection"
   },
-  "easy"
+  "easy",
+  "female"
 );
 
 // All other situations marked as coming soon

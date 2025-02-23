@@ -2,6 +2,8 @@ export type Difficulty = 'easy' | 'medium' | 'hard';
 
 export type Category = 'professional' | 'social' | 'family' | 'identity' | 'fun';
 
+export type VoiceType = 'male' | 'female';
+
 export interface BaseSituation {
   id: string;
   title: string;
@@ -10,6 +12,7 @@ export interface BaseSituation {
   context: string;
   userGoal: string;
   aiRole: string;
+  voice?: VoiceType;
 }
 
 export interface QuickTrainingSituation extends BaseSituation {

@@ -1,11 +1,12 @@
-import { SituationTemplate, QuickTrainingSituation } from '../types/situations';
+import { SituationTemplate, QuickTrainingSituation, VoiceType } from '../types/situations';
 
 type TemplateVariables = Record<string, string>;
 
 export function processSituationTemplate(
   template: SituationTemplate,
   variables?: TemplateVariables,
-  difficulty: 'easy' | 'medium' | 'hard' = 'easy'
+  difficulty: 'easy' | 'medium' | 'hard' = 'easy',
+  voice?: VoiceType
 ): QuickTrainingSituation {
   // Use provided variables or default values
   const processedVars = template.variables.reduce((acc, variable) => {
@@ -28,6 +29,7 @@ export function processSituationTemplate(
     aiRole: processString(template.aiRole),
     category: template.category,
     difficulty,
+    voice: voice || template.voice,
     tags: [template.category, difficulty, ...Object.values(processedVars)]
       .map(tag => tag.toLowerCase().replace(/\s+/g, '-'))
       .filter(Boolean)

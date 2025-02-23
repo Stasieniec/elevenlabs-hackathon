@@ -1,4 +1,5 @@
 import { useConversation } from '@11labs/react';
+import { useRef } from 'react';
 
 export type Message = {
   source: 'user' | 'ai';
@@ -11,6 +12,7 @@ export type ConversationConfig = {
   userGoal: string;
   aiRole: string;
   voiceId?: string;
+  voice?: 'male' | 'female';
   onMessage?: (message: Message) => void;
   onDisconnect?: () => void;
   agent?: {
@@ -43,14 +45,17 @@ export type ConversationError = {
 };
 
 export function useConversationManager(config: ConversationConfig) {
+  const messagesRef = useRef<Message[]>([]);
+
   const conversation = useConversation({
     onConnect: () => {
       console.log('Connected with config:', config);
+      messagesRef.current = [];
     },
     onDisconnect: () => {
       console.log('Disconnected by agent');
-      // The agent has disconnected, trigger feedback generation
-      if (config.onDisconnect) {
+      // Only trigger feedback generation if there are messages
+      if (config.onDisconnect && messagesRef.current.length > 0) {
         console.log('Calling onDisconnect callback');
         config.onDisconnect();
       }
@@ -65,6 +70,11 @@ export function useConversationManager(config: ConversationConfig) {
         message: messageText
       };
 
+      // Store message in ref
+      if (messageText) {
+        messagesRef.current = [...messagesRef.current, formattedMessage];
+      }
+
       // Call the onMessage callback if provided
       if (config.onMessage && messageText) {
         config.onMessage(formattedMessage);
@@ -77,9 +87,14 @@ export function useConversationManager(config: ConversationConfig) {
       // Request microphone permission
       await navigator.mediaDevices.getUserMedia({ audio: true });
 
+      // Select the appropriate agent ID based on voice preference
+      const agentId = config.voice === 'female' 
+        ? process.env.NEXT_PUBLIC_AGENT_ID_FEMALE_VOICE!
+        : process.env.NEXT_PUBLIC_AGENT_ID!;
+
       // Start the conversation with dynamic variables
       await conversation.startSession({
-        agentId: process.env.NEXT_PUBLIC_AGENT_ID!,
+        agentId,
         dynamicVariables: {
           situation_context: config.context,
           user_goal: config.userGoal,

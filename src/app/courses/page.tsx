@@ -140,9 +140,11 @@ export default function CoursesPage() {
     return (
       <main className="min-h-screen bg-[#ECF0F1]">
         <Navigation />
-        <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-          <div className="text-center">
-            <p className="text-[#34495E] text-lg">Please sign in to view your courses.</p>
+        <div className="md:pl-64 transition-all duration-200">
+          <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
+            <div className="text-center">
+              <p className="text-[#34495E] text-lg">Please sign in to view your courses.</p>
+            </div>
           </div>
         </div>
       </main>
@@ -153,9 +155,11 @@ export default function CoursesPage() {
     return (
       <main className="min-h-screen bg-[#ECF0F1]">
         <Navigation />
-        <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-          <div className="text-center">
-            <p className="text-[#34495E] text-lg">Initializing...</p>
+        <div className="md:pl-64 transition-all duration-200">
+          <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
+            <div className="text-center">
+              <p className="text-[#34495E] text-lg">Initializing...</p>
+            </div>
           </div>
         </div>
       </main>
@@ -166,115 +170,117 @@ export default function CoursesPage() {
     <main className="min-h-screen bg-[#ECF0F1]">
       <Navigation />
       
-      <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
-              <BookOpen size={32} className="text-[#27AE60]" />
+      <div className="md:pl-64 transition-all duration-200">
+        <div className="max-w-4xl mx-auto px-4 pt-20 pb-12">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center space-x-4">
+              <div className="p-3 rounded-full bg-[#27AE60] bg-opacity-10">
+                <BookOpen size={32} className="text-[#27AE60]" />
+              </div>
+              <h1 className="text-3xl font-bold text-[#2C3E50]">My Courses</h1>
             </div>
-            <h1 className="text-3xl font-bold text-[#2C3E50]">My Courses</h1>
-          </div>
-          <Link 
-            href="/courses/browse"
-            className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#219653] transition-colors"
-          >
-            Browse Courses
-          </Link>
-        </div>
-
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
-            {error}
-          </div>
-        )}
-
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-[#34495E] text-lg">Loading your courses...</p>
-          </div>
-        ) : enrolledCourses.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-xl shadow-sm">
-            <div className="mb-4">
-              <BookOpen size={48} className="text-gray-400 mx-auto" />
-            </div>
-            <p className="text-[#34495E] mb-4">
-              You haven&apos;t enrolled in any courses yet.
-            </p>
             <Link 
               href="/courses/browse"
-              className="inline-block bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#219653] transition-colors"
+              className="bg-[#27AE60] text-white px-6 py-2 rounded-lg hover:bg-[#219653] transition-colors"
             >
               Browse Courses
             </Link>
           </div>
-        ) : (
-          <div className="grid gap-6">
-            {enrolledCourses.map((course) => {
-              const Icon = course.icon;
-              return (
-                <div 
-                  key={course.id}
-                  className="bg-white rounded-xl p-6 shadow-sm"
-                >
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-start space-x-4">
-                      <div 
-                        className="p-3 rounded-full bg-opacity-10"
-                        style={{ backgroundColor: `${course.categoryColor}20` }}
-                      >
-                        <Icon size={24} style={{ color: course.categoryColor }} />
-                      </div>
-                      <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-2">
-                          <span 
-                            className="text-sm font-medium px-3 py-1 rounded-full"
-                            style={{ 
-                              backgroundColor: `${course.categoryColor}20`,
-                              color: course.categoryColor
-                            }}
-                          >
-                            {course.category}
-                          </span>
-                          <span className="text-sm text-gray-600">
-                            {course.completedChapters} of {course.totalChapters} chapters completed
-                          </span>
-                        </div>
-                        <h2 className="text-xl font-semibold text-[#2C3E50] mb-2">
-                          {course.title}
-                        </h2>
-                        <p className="text-[#34495E] mb-4">
-                          {course.description}
-                        </p>
-                        <div className="flex items-center space-x-4">
-                          <Link
-                            href={`/courses/${course.id}`}
-                            className="bg-[#27AE60] text-white px-4 py-2 rounded hover:bg-[#219653] transition-colors"
-                          >
-                            Continue Learning
-                          </Link>
-                          <button
-                            onClick={() => setCourseToUnenroll(course)}
-                            className="text-red-600 hover:text-red-700 transition-colors"
-                          >
-                            <Trash2 size={20} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="w-32">
-                      <div className="h-2 bg-gray-200 rounded-full">
+
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded mb-6">
+              {error}
+            </div>
+          )}
+
+          {loading ? (
+            <div className="text-center py-12">
+              <p className="text-[#34495E] text-lg">Loading your courses...</p>
+            </div>
+          ) : enrolledCourses.length === 0 ? (
+            <div className="text-center py-12 bg-white rounded-xl shadow-sm">
+              <div className="mb-4">
+                <BookOpen size={48} className="text-gray-400 mx-auto" />
+              </div>
+              <p className="text-[#34495E] mb-4">
+                You haven&apos;t enrolled in any courses yet.
+              </p>
+              <Link 
+                href="/courses/browse"
+                className="inline-block bg-[#27AE60] text-white px-6 py-3 rounded-lg hover:bg-[#219653] transition-colors"
+              >
+                Browse Courses
+              </Link>
+            </div>
+          ) : (
+            <div className="grid gap-6">
+              {enrolledCourses.map((course) => {
+                const Icon = course.icon;
+                return (
+                  <div 
+                    key={course.id}
+                    className="bg-white rounded-xl p-6 shadow-sm"
+                  >
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-start space-x-4">
                         <div 
-                          className="h-full bg-[#27AE60] rounded-full"
-                          style={{ width: `${course.progress}%` }}
-                        />
+                          className="p-3 rounded-full bg-opacity-10"
+                          style={{ backgroundColor: `${course.categoryColor}20` }}
+                        >
+                          <Icon size={24} style={{ color: course.categoryColor }} />
+                        </div>
+                        <div>
+                          <div className="flex flex-wrap items-center gap-2 mb-2">
+                            <span 
+                              className="text-sm font-medium px-3 py-1 rounded-full"
+                              style={{ 
+                                backgroundColor: `${course.categoryColor}20`,
+                                color: course.categoryColor
+                              }}
+                            >
+                              {course.category}
+                            </span>
+                            <span className="text-sm text-gray-600">
+                              {course.completedChapters} of {course.totalChapters} chapters completed
+                            </span>
+                          </div>
+                          <h2 className="text-xl font-semibold text-[#2C3E50] mb-2">
+                            {course.title}
+                          </h2>
+                          <p className="text-[#34495E] mb-4">
+                            {course.description}
+                          </p>
+                          <div className="flex items-center space-x-4">
+                            <Link
+                              href={`/courses/${course.id}`}
+                              className="bg-[#27AE60] text-white px-4 py-2 rounded hover:bg-[#219653] transition-colors"
+                            >
+                              Continue Learning
+                            </Link>
+                            <button
+                              onClick={() => setCourseToUnenroll(course)}
+                              className="text-red-600 hover:text-red-700 transition-colors"
+                            >
+                              <Trash2 size={20} />
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="w-32">
+                        <div className="h-2 bg-gray-200 rounded-full">
+                          <div 
+                            className="h-full bg-[#27AE60] rounded-full"
+                            style={{ width: `${course.progress}%` }}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
+                );
+              })}
+            </div>
+          )}
+        </div>
       </div>
 
       <ConfirmDialog

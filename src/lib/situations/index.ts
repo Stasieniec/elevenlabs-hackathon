@@ -1,5 +1,5 @@
 import { QuickTrainingSituation, Difficulty } from '../types/situations';
-import { socialSituations } from './social';
+import { socialSituations } from '@/lib/situations/social';
 
 // For now, we only have social situations implemented
 const emptySituations: QuickTrainingSituation[] = [];

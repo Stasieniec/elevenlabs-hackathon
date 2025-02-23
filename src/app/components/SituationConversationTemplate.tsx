@@ -21,7 +21,6 @@ export default function SituationConversationTemplate({
   isConnected = false,
   children
 }: SituationConversationTemplateProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const difficultyStyle = difficultyColors[situation.difficulty];
 
   return (
@@ -53,50 +52,40 @@ export default function SituationConversationTemplate({
             <p className="text-[#7F8C8D]">{situation.description}</p>
           </div>
 
-          {/* Expandable Context Section */}
-          <div className="border-b border-gray-100">
-            <button
-              onClick={() => setIsExpanded(!isExpanded)}
-              className="w-full px-6 py-4 text-left hover:bg-gray-50 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-medium text-[#2C3E50]">Situation Details</span>
-                <span className="text-[#7F8C8D] text-sm">
-                  {isExpanded ? 'Hide' : 'Show'}
-                </span>
+          {/* Situation Details */}
+          <div className="px-6 py-6 space-y-6 border-b border-gray-100">
+            {/* Context */}
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 p-3 rounded-full bg-[#3498DB] bg-opacity-10">
+                <MessageCircle className="w-5 h-5 text-[#3498DB]" />
               </div>
-            </button>
-            
-            {isExpanded && (
-              <div className="px-6 pb-4 space-y-4">
-                {/* Context */}
-                <div className="flex items-start space-x-3">
-                  <MessageCircle className="w-5 h-5 text-[#3498DB] mt-1" />
-                  <div>
-                    <h3 className="font-medium text-[#2C3E50] mb-1">Context</h3>
-                    <p className="text-[#7F8C8D]">{situation.context}</p>
-                  </div>
-                </div>
-
-                {/* User Goal */}
-                <div className="flex items-start space-x-3">
-                  <Target className="w-5 h-5 text-[#27AE60] mt-1" />
-                  <div>
-                    <h3 className="font-medium text-[#2C3E50] mb-1">Your Goal</h3>
-                    <p className="text-[#7F8C8D]">{situation.userGoal}</p>
-                  </div>
-                </div>
-
-                {/* AI Role */}
-                <div className="flex items-start space-x-3">
-                  <UserCircle2 className="w-5 h-5 text-[#9B59B6] mt-1" />
-                  <div>
-                    <h3 className="font-medium text-[#2C3E50] mb-1">AI Partner&apos;s Role</h3>
-                    <p className="text-[#7F8C8D]">{situation.aiRole}</p>
-                  </div>
-                </div>
+              <div>
+                <h3 className="font-medium text-[#2C3E50] mb-2">Context</h3>
+                <p className="text-[#7F8C8D] leading-relaxed">{situation.context}</p>
               </div>
-            )}
+            </div>
+
+            {/* User Goal */}
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 p-3 rounded-full bg-[#27AE60] bg-opacity-10">
+                <Target className="w-5 h-5 text-[#27AE60]" />
+              </div>
+              <div>
+                <h3 className="font-medium text-[#2C3E50] mb-2">Your Goal</h3>
+                <p className="text-[#7F8C8D] leading-relaxed">{situation.userGoal}</p>
+              </div>
+            </div>
+
+            {/* AI Role */}
+            <div className="flex items-start space-x-4">
+              <div className="flex-shrink-0 p-3 rounded-full bg-[#9B59B6] bg-opacity-10">
+                <UserCircle2 className="w-5 h-5 text-[#9B59B6]" />
+              </div>
+              <div>
+                <h3 className="font-medium text-[#2C3E50] mb-2">AI Partner&apos;s Role</h3>
+                <p className="text-[#7F8C8D] leading-relaxed">{situation.aiRole}</p>
+              </div>
+            </div>
           </div>
 
           {/* Status Bar */}
