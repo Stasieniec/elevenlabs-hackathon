@@ -3,13 +3,14 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, Home, BookOpen, Zap, Settings, Plus, Search } from 'lucide-react';
-import { UserButton } from '@clerk/nextjs';
+import { UserButton, useAuth } from '@clerk/nextjs';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const { isSignedIn } = useAuth();
 
   const menuItems = [
-    { name: 'Home', href: '/', icon: Home },
+    { name: 'Home', href: isSignedIn ? '/dashboard' : '/', icon: Home },
     { name: 'My Courses', href: '/courses', icon: BookOpen },
     { name: 'Browse Courses', href: '/courses/browse', icon: Search },
     { name: 'Quick Training', href: '/quick-training', icon: Zap },
@@ -29,7 +30,7 @@ export default function Navigation() {
             >
               <Menu size={24} />
             </button>
-            <Link href="/" className="text-xl font-semibold text-neutral-dark">
+            <Link href={isSignedIn ? '/dashboard' : '/'} className="text-xl font-semibold text-neutral-dark">
               Oratoria
             </Link>
           </div>
