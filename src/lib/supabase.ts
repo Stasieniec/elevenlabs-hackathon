@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import { Database } from './database.types'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -10,7 +11,7 @@ export const createClerkSupabaseClient = async (session: { getToken: (opts: { te
     throw new Error('Failed to get Supabase token from Clerk session');
   }
   
-  return createClient(supabaseUrl, supabaseKey, {
+  return createClient<Database>(supabaseUrl, supabaseKey, {
     global: {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -19,39 +20,12 @@ export const createClerkSupabaseClient = async (session: { getToken: (opts: { te
   })
 }
 
-// Export types
-export type Course = {
-  id: string
-  title: string
-  description: string | null
-  created_at: string
-}
-
-export type Chapter = {
-  id: string
-  course_id: string
-  title: string
-  description: string | null
-  order_index: number
-  created_at: string
-}
-
-export type Situation = {
-  id: string
-  chapter_id: string
-  title: string
-  description: string | null
-  context: string
-  order_index: number
-  created_at: string
-}
-
-export type UserProgress = {
-  id: string
-  user_id: string // This is a UUID but we'll handle it as string in TypeScript
-  situation_id: string
-  completed: boolean
-  score: number | null
-  feedback: string | null
-  created_at: string
-} 
+// Export types for convenience
+export type User = Database['public']['Tables']['users']['Row']
+export type Category = Database['public']['Tables']['categories']['Row']
+export type Course = Database['public']['Tables']['courses']['Row']
+export type Lesson = Database['public']['Tables']['lessons']['Row']
+export type LessonStage = Database['public']['Tables']['lesson_stages']['Row']
+export type CourseEnrollment = Database['public']['Tables']['course_enrollments']['Row']
+export type LessonProgress = Database['public']['Tables']['lesson_progress']['Row']
+export type UserApiKey = Database['public']['Tables']['user_api_keys']['Row'] 
