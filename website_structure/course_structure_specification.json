@@ -1,0 +1,152 @@
+{
+    "project": "Luctor",
+    "description": "An AI-powered web app for soft skill training, designed for companies to upskill employees in areas such as sales, negotiation, and communication. Integrates two external AI agents: Coach and Teacher, each with avatars, chat, and voice output.",
+    "ai_agents": {
+      "coach": {
+        "role": "Provides lessons and helps solve work-related problems",
+        "api": "External",
+        "avatar": "Animated",
+        "output": ["Text", "Voice"]
+      },
+      "teacher": {
+        "role": "Conducts interactive practice sessions",
+        "api": "External",
+        "avatar": "Animated",
+        "output": ["Text", "Voice"]
+      }
+    },
+    "pages": [
+      {
+        "name": "Login Page",
+        "elements": [
+          "Luctor logo and name (top)",
+          "Username input field",
+          "Password input field",
+          "Login button"
+        ],
+        "logic": {
+          "user_login": "Redirect to Welcome Screen",
+          "admin_login": "Redirect to CMS Page"
+        }
+      },
+      {
+        "name": "Welcome Screen",
+        "layout": "Two columns",
+        "left": {
+          "content": "Courses shown as circular icons (2 per row)",
+          "action": "Click a course → Course Page"
+        },
+        "right": {
+          "content": "Large Coach icon with label: 'Get help with a specific problem from your coach.'",
+          "action": "Click icon → Specific Problem Page"
+        }
+      },
+      {
+        "name": "Course Page",
+        "elements": [
+          "Course title",
+          "Short description of course",
+          "Lessons shown as circle icons (max 3 in a row)",
+          "Back button (top-left)"
+        ],
+        "logic": {
+          "click_lesson": "Redirect to Coach Lesson Page",
+          "click_back": "Redirect to Welcome Screen"
+        }
+      },
+      {
+        "name": "Coach Lesson Page",
+        "layout": "Three sections",
+        "sections": {
+          "top_left": "Animated Coach avatar",
+          "bottom_left": "Graphs and tables from case study related to lesson",
+          "right": {
+            "chatbox": "Chat with Coach (text + voice)",
+            "input": ["Text input field", "Microphone button"],
+            "output": ["Text", "Voice"],
+            "persistence": "Chat history is saved"
+          }
+        },
+        "buttons": {
+          "back": "Redirect to Course Page",
+          "start_practice": "Redirect to Practice Page"
+        }
+      },
+      {
+        "name": "Practice Page",
+        "layout": "Three sections (same as Coach Lesson Page)",
+        "sections": {
+          "top_left": "Animated Teacher avatar",
+          "bottom_left": "Same lesson materials as Coach Lesson Page",
+          "right": {
+            "chatbox": "Chat with Teacher (text + voice)",
+            "input": ["Text input field", "Microphone button"],
+            "output": ["Text", "Voice"],
+            "persistence": "Chat history is saved separately from Coach chat"
+          }
+        },
+        "buttons": {
+          "back": "Return to Coach Lesson Page without saving conversation",
+          "finish_practice": "Return to Coach Lesson Page with conversation passed to Coach"
+        }
+      },
+      {
+        "name": "Coach Lesson Page (After Practice)",
+        "description": "Same layout and behavior as original Coach Lesson Page. Coach now has access to Teacher's conversation data."
+      },
+      {
+        "name": "Specific Problem Page",
+        "layout": "Two columns",
+        "left": "Animated Coach avatar",
+        "right": {
+          "chatbox": "Chat with Coach (text + voice)",
+          "input": ["Text input field", "Microphone button"],
+          "output": ["Text", "Voice"],
+          "persistence": "All conversations are saved"
+        },
+        "buttons": {
+          "back": "Redirect to Welcome Screen"
+        }
+      },
+      {
+        "name": "CMS Page",
+        "access": "Admins only",
+        "features": [
+          "Create/edit courses",
+          "Create/edit lessons",
+          "Add/edit lesson content (hidden from users, fed to Coach/Teacher)",
+          "Manage AI knowledge base"
+        ]
+      }
+    ],
+    "ui_considerations": {
+      "design": "Modern, clean, consistent layout",
+      "interactions": [
+        "All buttons have clear navigation behavior",
+        "Animated avatars for both Coach and Teacher",
+        "Responsive design for multiple screen sizes"
+      ]
+    },
+    "chat_behavior": {
+      "coach": {
+        "chat_saved": true,
+        "voice_output": true
+      },
+      "teacher": {
+        "chat_saved": true,
+        "voice_output": true,
+        "chat_isolated": true
+      },
+      "specific_problem": {
+        "chat_saved": true
+      },
+      "practice_back_button": {
+        "chat_saved": false
+      },
+      "practice_finish_button": {
+        "chat_saved": true,
+        "shared_with_coach": true
+      }
+    }
+  }
+  
