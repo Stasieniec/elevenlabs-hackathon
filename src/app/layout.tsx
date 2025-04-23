@@ -1,6 +1,7 @@
 import './globals.css';
 import { Inter } from 'next/font/google';
-import Providers from './providers';
+import { ClerkProvider } from '@clerk/nextjs';
+// No longer need Providers or pathname logic here
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -15,12 +16,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className} suppressHydrationWarning>
-        <Providers>
-          {children}
-        </Providers>
-      </body>
-    </html>
+    <ClerkProvider 
+      afterSignInUrl="/dashboard" 
+      afterSignUpUrl="/dashboard" // Redirect to dashboard after sign up too
+    >
+      <html lang="en">
+        <body className={inter.className} suppressHydrationWarning>
+          {children} {/* Content comes from group layouts */}
+        </body>
+      </html>
+    </ClerkProvider>
   );
 } 

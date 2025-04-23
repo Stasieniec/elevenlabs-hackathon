@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Navigation from '../../components/Navigation';
 import { BookOpen, Search, Plus, Trash2 } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../../supabase-provider';
 import ConfirmDialog from '../../components/ConfirmDialog';
 import { Course, CourseCategory } from '@/lib/types/courses';
 import { courses } from '@/lib/courses/index';
@@ -13,7 +13,7 @@ const categories = Array.from(new Set(courses.map((course: Course) => course.cat
 
 export default function BrowseCoursesPage() {
   const { user } = useUser();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<CourseCategory | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);

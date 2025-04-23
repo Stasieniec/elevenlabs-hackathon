@@ -4,11 +4,11 @@ import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Navigation from '../components/Navigation';
 import { Loader2 } from 'lucide-react';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../supabase-provider';
 
 export default function SettingsPage() {
   const { user } = useUser();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [isResetting, setIsResetting] = useState(false);
 
   const handleResetOnboarding = async () => {

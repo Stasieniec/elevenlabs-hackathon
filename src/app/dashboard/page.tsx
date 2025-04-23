@@ -6,12 +6,12 @@ import { ArrowRight, Target, BookOpen, MessageSquare, Loader2 } from 'lucide-rea
 import { courses } from '@/lib/courses/index';
 import Navigation from '../components/Navigation';
 import { useAuth } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../supabase-provider';
 import type { ReactElement } from 'react';
 
 export default function DashboardPage(): ReactElement {
   const { userId } = useAuth();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [enrolledCourses, setEnrolledCourses] = useState<typeof courses>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);

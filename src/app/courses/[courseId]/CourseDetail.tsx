@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Course } from '@/lib/types/courses';
 import { useUser } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../../supabase-provider';
 import { Users, Briefcase, MessageCircle, ArrowLeft, BookOpen, Target } from 'lucide-react';
 import Navigation from '@/app/components/Navigation';
 
@@ -19,7 +19,7 @@ type Props = {
 
 export default function CourseDetail({ course }: Props) {
   const { user } = useUser();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [error, setError] = useState<string | null>(null);
   const [isEnrolled, setIsEnrolled] = useState(false);
   const [isLoading, setIsLoading] = useState(true);

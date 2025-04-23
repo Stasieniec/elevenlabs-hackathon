@@ -6,7 +6,7 @@ import { BookOpen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../supabase-provider';
 import ConfirmDialog from '../components/ConfirmDialog';
 import { courses } from '@/lib/courses/index';
 
@@ -24,7 +24,7 @@ type EnrolledCourse = {
 
 export default function CoursesPage() {
   const { user } = useUser();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [enrolledCourses, setEnrolledCourses] = useState<EnrolledCourse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

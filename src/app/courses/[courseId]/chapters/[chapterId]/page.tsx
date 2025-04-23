@@ -7,7 +7,7 @@ import Navigation from '@/app/components/Navigation';
 import { courses } from '@/lib/courses';
 import { QuickTrainingSituation } from '@/lib/types/situations';
 import { useUser } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../../../../supabase-provider';
 import { useState, useEffect } from 'react';
 
 const iconMap: Record<string, typeof Brain | typeof Heart | typeof Frown> = {
@@ -21,7 +21,7 @@ export default function ChapterPage() {
   const courseId = params.courseId as string;
   const chapterId = params.chapterId as string;
   const { user } = useUser();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [completedSituations, setCompletedSituations] = useState<string[]>([]);
 
   const course = courses.find(c => c.id === courseId);

@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, Languages, Users, Briefcase } from 'lucide-react';
 import Navigation from '../components/Navigation';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useSupabase } from '../supabase-provider';
 import { PostgrestError } from '@supabase/supabase-js';
 
 // Define the steps
@@ -63,7 +63,7 @@ const COMMON_LANGUAGES = [
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
-  const supabase = useSupabaseAuth();
+  const supabase = useSupabase().supabase;
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
