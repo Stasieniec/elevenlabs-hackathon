@@ -9,6 +9,8 @@ import ConversationFeedback from '@/app/components/ConversationFeedback';
 import { generateFeedback } from '@/lib/elevenlabs';
 import Link from 'next/link';
 import Navigation from '@/app/components/Navigation';
+import { useUser } from '@clerk/nextjs';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 type ConversationState = 'initial' | 'conversation' | 'feedback' | 'analyzing';
 
@@ -17,6 +19,8 @@ export default function SituationPage() {
   const courseId = params.courseId as string;
   const chapterId = params.chapterId as string;
   const situationId = params.situationId as string;
+  const { user } = useUser();
+  const supabase = useSupabaseAuth();
   
   const [conversationState, setConversationState] = useState<ConversationState>('initial');
   const [messages, setMessages] = useState<Message[]>([]);
@@ -59,11 +63,22 @@ export default function SituationPage() {
       
       setFeedback(feedbackData);
       setConversationState('feedback');
+      
+      // Mark lesson as completed in Supabase
+      if (user && supabase && situationId) {
+        await supabase
+          .from('lesson_progress')
+          .upsert({
+            user_id: user.id,
+            lesson_id: situationId,
+            completed: true
+          }, { onConflict: 'user_id,lesson_id' });
+      }
     } catch (error) {
       console.error('Error generating feedback:', error);
       isGeneratingFeedback.current = false;
     }
-  }, [messages, situation?.context, situation?.userGoal, situation?.aiRole]);
+  }, [messages, situation?.context, situation?.userGoal, situation?.aiRole, user, supabase, situationId]);
 
   const handleStartPractice = async () => {
     setMessages([]);

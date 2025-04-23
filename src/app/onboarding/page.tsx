@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { useClerk, useUser } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import { Loader2, Languages, Users, Briefcase } from 'lucide-react';
 import Navigation from '../components/Navigation';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
@@ -63,7 +63,6 @@ const COMMON_LANGUAGES = [
 
 export default function OnboardingPage() {
   const { user, isLoaded } = useUser();
-  const clerk = useClerk();
   const supabase = useSupabaseAuth();
   const [currentStep, setCurrentStep] = useState(0);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -162,16 +161,13 @@ export default function OnboardingPage() {
 
       console.log('Saved preferences:', data);
 
-      // Update Clerk metadata
-      await clerk.user?.update({
-        unsafeMetadata: {
-          onboardingComplete: true
-        }
-      });
-
-      // Get a fresh session
-      if (clerk.session) {
-        await clerk.session.touch();
+      // Update onboarding_completed in Supabase users table
+      const { error: onboardingError } = await supabase
+        .from('users')
+        .update({ onboarding_completed: true })
+        .eq('id', user.id);
+      if (onboardingError) {
+        throw onboardingError;
       }
 
       // Redirect to dashboard

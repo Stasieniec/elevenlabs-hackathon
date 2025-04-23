@@ -5,24 +5,33 @@ import Link from 'next/link';
 import { ArrowRight, Target, BookOpen, MessageSquare, Loader2 } from 'lucide-react';
 import { courses } from '@/lib/courses/index';
 import Navigation from '../components/Navigation';
-import { useAuth, useUser } from '@clerk/nextjs';
+import { useAuth } from '@clerk/nextjs';
 import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 import type { ReactElement } from 'react';
 
 export default function DashboardPage(): ReactElement {
   const { userId } = useAuth();
-  const { user } = useUser();
   const supabase = useSupabaseAuth();
   const [enrolledCourses, setEnrolledCourses] = useState<typeof courses>([]);
   const [isLoading, setIsLoading] = useState(true);
-
-  // Get onboarding status from Clerk metadata
-  const hasCompletedOnboarding = user?.unsafeMetadata?.onboardingComplete as boolean;
+  const [hasCompletedOnboarding, setHasCompletedOnboarding] = useState<boolean | null>(null);
 
   useEffect(() => {
     const fetchUserData = async () => {
       if (!userId || !supabase) {
         return;
+      }
+
+      // Fetch onboarding status from Supabase
+      const { data: userData, error: userError } = await supabase
+        .from('users')
+        .select('onboarding_completed')
+        .eq('id', userId)
+        .single();
+      if (userError) {
+        setHasCompletedOnboarding(null);
+      } else {
+        setHasCompletedOnboarding(userData?.onboarding_completed ?? false);
       }
 
       try {
@@ -66,7 +75,7 @@ export default function DashboardPage(): ReactElement {
           </section>
 
           {/* Onboarding Banner */}
-          {!hasCompletedOnboarding && (
+          {hasCompletedOnboarding === false && (
             <div className="bg-secondary/10 border border-secondary/20 rounded-xl p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
               <div className="text-center sm:text-left">
                 <h3 className="text-lg font-semibold text-secondary mb-1">Complete Your Profile</h3>

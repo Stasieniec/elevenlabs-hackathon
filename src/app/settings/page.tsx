@@ -1,25 +1,26 @@
 'use client';
 
 import { useState } from 'react';
-import { useUser, useClerk } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import Navigation from '../components/Navigation';
 import { Loader2 } from 'lucide-react';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
 
 export default function SettingsPage() {
   const { user } = useUser();
-  const clerk = useClerk();
+  const supabase = useSupabaseAuth();
   const [isResetting, setIsResetting] = useState(false);
 
   const handleResetOnboarding = async () => {
-    if (!user || isResetting) return;
+    if (!user || !supabase || isResetting) return;
 
     setIsResetting(true);
     try {
-      await clerk.user?.update({
-        unsafeMetadata: { onboardingComplete: false }
-      });
-      await clerk.user?.reload();
-      if (clerk.session) await clerk.session.touch();
+      const { error } = await supabase
+        .from('users')
+        .update({ onboarding_completed: false })
+        .eq('id', user.id);
+      if (error) throw error;
       window.location.reload();
     } catch {
       alert('Failed to reset onboarding. Please try again.');

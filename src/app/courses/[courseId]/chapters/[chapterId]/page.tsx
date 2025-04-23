@@ -2,10 +2,13 @@
 
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowLeft, Brain, Heart, Frown, Clock, Target } from 'lucide-react';
+import { ArrowLeft, Brain, Heart, Frown, Clock, Target, CheckCircle } from 'lucide-react';
 import Navigation from '@/app/components/Navigation';
 import { courses } from '@/lib/courses';
 import { QuickTrainingSituation } from '@/lib/types/situations';
+import { useUser } from '@clerk/nextjs';
+import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
+import { useState, useEffect } from 'react';
 
 const iconMap: Record<string, typeof Brain | typeof Heart | typeof Frown> = {
   brain: Brain,
@@ -17,9 +20,30 @@ export default function ChapterPage() {
   const params = useParams();
   const courseId = params.courseId as string;
   const chapterId = params.chapterId as string;
+  const { user } = useUser();
+  const supabase = useSupabaseAuth();
+  const [completedSituations, setCompletedSituations] = useState<string[]>([]);
 
   const course = courses.find(c => c.id === courseId);
   const chapter = course?.chapters.find(ch => ch.id === chapterId);
+
+  useEffect(() => {
+    type LessonProgressRow = { lesson_id: string; completed: boolean };
+    const fetchCompletion = async () => {
+      if (!user || !supabase) {
+        return;
+      }
+      const { data, error } = await supabase
+        .from('lesson_progress')
+        .select('lesson_id, completed')
+        .eq('user_id', user.id)
+        .eq('completed', true);
+      if (!error && data) {
+        setCompletedSituations((data as LessonProgressRow[]).map(row => row.lesson_id));
+      }
+    };
+    fetchCompletion();
+  }, [user, supabase]);
 
   if (!course || !chapter) {
     return (
@@ -78,21 +102,20 @@ export default function ChapterPage() {
           <div className="grid gap-6">
             {chapter.situations.map((situation: QuickTrainingSituation, index: number) => {
               const Icon = iconMap[situation.icon] || Brain;
-              
+              const completed = completedSituations.includes(situation.id);
               return (
                 <Link
                   key={situation.id}
                   href={`/courses/${courseId}/chapters/${chapterId}/situations/${situation.id}`}
-                  className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group border border-gray-100"
+                  className="bg-white rounded-xl p-6 shadow-sm hover:shadow-md transition-all group border border-gray-100 flex items-center"
                 >
-                  <div className="flex items-start space-x-4">
+                  <div className="flex items-start space-x-4 flex-1">
                     <div 
                       className="p-3 rounded-full bg-opacity-10"
                       style={{ backgroundColor: `${course.categoryColor}20` }}
                     >
                       <Icon size={24} style={{ color: course.categoryColor }} />
                     </div>
-                    
                     <div className="flex-1">
                       <div className="flex items-center space-x-2 mb-2">
                         <span className="text-sm font-medium text-[#7F8C8D]">
@@ -108,16 +131,17 @@ export default function ChapterPage() {
                           {situation.difficulty}
                         </span>
                       </div>
-                      
                       <h2 className="text-xl font-semibold text-[#2C3E50] group-hover:text-[#27AE60] transition-colors mb-2">
                         {situation.title}
                       </h2>
-                      
                       <p className="text-[#7F8C8D] line-clamp-2">
                         {situation.description}
                       </p>
                     </div>
                   </div>
+                  {completed && (
+                    <CheckCircle className="text-[#27AE60] ml-4" size={28} />
+                  )}
                 </Link>
               );
             })}
