@@ -121,28 +121,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No conversation messages provided' }, { status: 400 });
     }
 
-    // Fetch user's API keys
-    const { data: apiKeys, error: apiKeysError } = await supabase
-      .from('user_api_keys')
-      .select('fal_ai_api_key_encrypted')
-      .eq('user_id', authRequest.userId)
-      .single();
-
-    if (apiKeysError && apiKeysError.code !== 'PGRST116') {
-      console.error('Error fetching API keys:', apiKeysError);
-      return NextResponse.json({ error: 'Failed to fetch API keys' }, { status: 500 });
-    }
-
-    // Only block if no API keys AND no free conversations
-    if (!apiKeys?.fal_ai_api_key_encrypted && freeConversationsLeft <= 0) {
-      return NextResponse.json(
-        { error: 'Please set up your API keys in settings or use your free conversations' },
-        { status: 400 }
-      );
-    }
-
-    // Use admin key if user doesn't have their own keys
-    const falAiKey = apiKeys?.fal_ai_api_key_encrypted || process.env.ADMIN_FAL_AI_KEY;
+    // Use admin key from environment only
+    const falAiKey = process.env.ADMIN_FAL_AI_KEY;
     if (!falAiKey) {
       return NextResponse.json({ error: 'No valid API key available' }, { status: 500 });
     }

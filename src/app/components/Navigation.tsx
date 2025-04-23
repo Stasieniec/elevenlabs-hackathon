@@ -1,97 +1,33 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import Link from 'next/link';
 import { Menu, X, Home, BookOpen, Zap, Settings, Plus, Search } from 'lucide-react';
-import { UserButton, useAuth, useUser } from '@clerk/nextjs';
-import { useSupabaseAuth } from '@/hooks/useSupabaseAuth';
-import { Tooltip } from '@/app/components/Tooltip';
+import { UserButton, useAuth } from '@clerk/nextjs';
 
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
   const { isSignedIn } = useAuth();
-  const { user } = useUser();
-  const supabase = useSupabaseAuth();
-  const [hasApiKeys, setHasApiKeys] = useState(false);
-  const [freeConversationsLeft, setFreeConversationsLeft] = useState(3);
-
-  // Effect for free conversations count
-  useEffect(() => {
-    const updateFreeConversations = async () => {
-      if (!user) return;
-      
-      try {
-        // Force reload user to get fresh metadata
-        const updatedUser = await user.reload();
-        const conversationsLeft = updatedUser?.unsafeMetadata?.freeConversationsLeft as number ?? 3;
-        setFreeConversationsLeft(conversationsLeft);
-      } catch (err) {
-        console.error('Error updating free conversations:', err);
-      }
-    };
-
-    updateFreeConversations();
-    // Check every 2 seconds for updates
-    const interval = setInterval(updateFreeConversations, 2000);
-    return () => clearInterval(interval);
-  }, [user]);
-
-  useEffect(() => {
-    const checkApiKeys = async () => {
-      if (!isSignedIn || !supabase) return;
-
-      try {
-        const { data } = await supabase
-          .from('user_api_keys')
-          .select('elevenlabs_api_key_encrypted, fal_ai_api_key_encrypted')
-          .maybeSingle();
-
-        setHasApiKeys(
-          !!data?.elevenlabs_api_key_encrypted && 
-          !!data?.fal_ai_api_key_encrypted
-        );
-      } catch (err) {
-        console.error('Error checking API keys:', err);
-        setHasApiKeys(false);
-      }
-    };
-
-    checkApiKeys();
-  }, [isSignedIn, supabase]);
 
   const menuItems = [
-    { name: 'Home', href: isSignedIn ? '/dashboard' : '/', icon: Home, requiresKeys: false },
-    { name: 'My Courses', href: '/courses', icon: BookOpen, requiresKeys: true },
-    { name: 'Browse Courses', href: '/courses/browse', icon: Search, requiresKeys: true },
-    { name: 'Quick Training', href: '/quick-training', icon: Zap, requiresKeys: true },
-    { name: 'Custom Situation', href: '/custom', icon: Plus, requiresKeys: true },
-    { name: 'Settings', href: '/settings', icon: Settings, requiresKeys: false },
+    { name: 'Home', href: isSignedIn ? '/dashboard' : '/', icon: Home },
+    { name: 'My Courses', href: '/courses', icon: BookOpen },
+    { name: 'Browse Courses', href: '/courses/browse', icon: Search },
+    { name: 'Quick Training', href: '/quick-training', icon: Zap },
+    { name: 'Custom Situation', href: '/custom', icon: Plus },
+    { name: 'Settings', href: '/settings', icon: Settings },
   ];
 
-  const renderMenuItem = (item: typeof menuItems[0]) => {
-    // Only disable if both conditions are true: no API keys AND no free conversations
-    if (item.requiresKeys && !hasApiKeys && freeConversationsLeft <= 0) {
-      return (
-        <Tooltip content="Add API keys or use free conversations to access this feature">
-          <span className="flex items-center space-x-3 px-4 py-3 text-gray-400 cursor-not-allowed">
-            <item.icon size={20} />
-            <span>{item.name}</span>
-          </span>
-        </Tooltip>
-      );
-    }
-
-    return (
-      <Link
-        href={item.href}
-        className="flex items-center space-x-3 px-4 py-3 text-neutral hover:text-neutral-dark hover:bg-gray-100 rounded-lg transition-colors"
-        onClick={() => setIsOpen(false)}
-      >
-        <item.icon size={20} />
-        <span>{item.name}</span>
-      </Link>
-    );
-  };
+  const renderMenuItem = (item: typeof menuItems[0]) => (
+    <Link
+      href={item.href}
+      className="flex items-center space-x-3 px-4 py-3 text-neutral hover:text-neutral-dark hover:bg-gray-100 rounded-lg transition-colors"
+      onClick={() => setIsOpen(false)}
+    >
+      <item.icon size={20} />
+      <span>{item.name}</span>
+    </Link>
+  );
 
   return (
     <>

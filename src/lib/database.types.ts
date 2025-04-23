@@ -215,29 +215,6 @@ export interface Database {
           updated_at?: string
         }
       }
-      user_api_keys: {
-        Row: {
-          id: string
-          user_id: string
-          elevenlabs_api_key_encrypted: string | null
-          created_at: string
-          updated_at: string
-        }
-        Insert: {
-          id?: string
-          user_id: string
-          elevenlabs_api_key_encrypted?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-        Update: {
-          id?: string
-          user_id?: string
-          elevenlabs_api_key_encrypted?: string | null
-          created_at?: string
-          updated_at?: string
-        }
-      }
     }
     Views: {
       [_ in never]: never
