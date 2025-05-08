@@ -2,9 +2,9 @@
 
 import { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
-import Navigation from '../components/Navigation';
+import Navigation from '../../components/Navigation';
 import { Loader2 } from 'lucide-react';
-import { useSupabase } from '../supabase-provider';
+import { useSupabase } from '../../supabase-provider';
 
 export default function SettingsPage() {
   const { user } = useUser();

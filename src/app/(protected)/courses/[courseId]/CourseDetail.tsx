@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Course } from '@/lib/types/courses';
 import { useUser } from '@clerk/nextjs';
-import { useSupabase } from '../../supabase-provider';
+import { useSupabase } from '../../../supabase-provider';
 import { Users, Briefcase, MessageCircle, ArrowLeft, BookOpen, Target } from 'lucide-react';
 import Navigation from '@/app/components/Navigation';
 

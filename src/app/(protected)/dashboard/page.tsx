@@ -4,9 +4,9 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowRight, Target, BookOpen, MessageSquare, Loader2 } from 'lucide-react';
 import { courses } from '@/lib/courses/index';
-import Navigation from '../components/Navigation';
+import Navigation from '../../components/Navigation';
 import { useAuth } from '@clerk/nextjs';
-import { useSupabase } from '../supabase-provider';
+import { useSupabase } from '../../supabase-provider';
 import type { ReactElement } from 'react';
 
 export default function DashboardPage(): ReactElement {

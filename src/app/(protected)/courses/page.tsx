@@ -1,13 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navigation from '../components/Navigation';
+import Navigation from '../../components/Navigation';
 import { BookOpen, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import type { LucideIcon } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { useSupabase } from '../supabase-provider';
-import ConfirmDialog from '../components/ConfirmDialog';
+import { useSupabase } from '../../supabase-provider';
+import ConfirmDialog from '../../components/ConfirmDialog';
 import { courses } from '@/lib/courses/index';
 
 type EnrolledCourse = {

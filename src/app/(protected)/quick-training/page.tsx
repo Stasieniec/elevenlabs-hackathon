@@ -1,7 +1,7 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import Navigation from '../components/Navigation';
+import Navigation from '../../components/Navigation';
 import { Zap } from 'lucide-react';
 import SituationCard from './SituationCard';
 import { socialSituations } from '@/lib/situations/social';

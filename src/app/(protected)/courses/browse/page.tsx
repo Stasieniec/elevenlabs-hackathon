@@ -1,11 +1,11 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import Navigation from '../../components/Navigation';
+import Navigation from '../../../components/Navigation';
 import { BookOpen, Search, Plus, Trash2, Briefcase, Heart, Users } from 'lucide-react';
 import { useUser } from '@clerk/nextjs';
-import { useSupabase } from '../../supabase-provider';
-import ConfirmDialog from '../../components/ConfirmDialog';
+import { useSupabase } from '../../../supabase-provider';
+import ConfirmDialog from '../../../components/ConfirmDialog';
 import type { LucideIcon } from 'lucide-react';
 
 // Category color/icon mapping
@@ -38,7 +38,11 @@ type CourseDisplay = {
 
 export default function BrowseCoursesPage() {
   const { user } = useUser();
-  const supabase = useSupabase().supabase;
+  const { supabase } = useSupabase();
+
+  // Log client status on every render
+  console.log('[BrowseCoursesPage] Rendering. User:', user, 'Supabase Client:', supabase);
+
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [enrollingCourseId, setEnrollingCourseId] = useState<string | null>(null);
@@ -60,43 +64,73 @@ export default function BrowseCoursesPage() {
   useEffect(() => {
     const fetchCourses = async () => {
       if (!supabase) {
-        setLoading(false);
+        console.log('[BrowseCoursesPage] fetchCourses effect: supabase not ready yet.');
         return;
       }
+      console.log('[BrowseCoursesPage] fetchCourses effect: supabase ready, setting loading=true and starting fetch.');
       setLoading(true);
       setError(null);
       try {
+        console.log('[BrowseCoursesPage] Attempting to fetch courses...');
         const { data, error: courseError } = await supabase
           .from('courses')
           .select('id, title, description, category_id')
           .order('title', { ascending: true });
-        if (courseError) throw courseError;
+        console.log('[BrowseCoursesPage] Fetched courses result:', { data, courseError });
+        if (courseError) {
+          console.error('[BrowseCoursesPage] Error during course fetch:', courseError);
+          throw courseError;
+        }
+
+        console.log('[BrowseCoursesPage] Attempting to fetch categories...');
         const { data: catData, error: catError } = await supabase
           .from('categories')
           .select('id, name');
-        if (catError) throw catError;
+        console.log('[BrowseCoursesPage] Fetched categories result:', { catData, catError });
+        if (catError) {
+          console.error('[BrowseCoursesPage] Error during category fetch:', catError);
+          throw catError;
+        }
+
+        console.log('[BrowseCoursesPage] Mapping fetched data...');
         const catMap: Record<string, string> = Object.fromEntries((catData || []).map((c: DbCategory) => [c.id, c.name]));
         const mapped: CourseDisplay[] = (data || []).map((c: DbCourse) => {
-          const category = catMap[c.category_id] || 'professional';
-          const catInfo = CATEGORY_MAP[category as keyof typeof CATEGORY_MAP] || CATEGORY_MAP['professional'];
+          const categoryName = catMap[c.category_id];
+          if (!categoryName) {
+            console.warn(`[BrowseCoursesPage] Mapping Warning: Category ID "${c.category_id}" for course "${c.title}" not found in categories table. Defaulting to 'professional'.`);
+          }
+          const category = categoryName || 'professional';
+
+          const catInfo = CATEGORY_MAP[category as keyof typeof CATEGORY_MAP];
+          if (!catInfo) {
+            console.warn(`[BrowseCoursesPage] Mapping Warning: Category name "${category}" (mapped or default) not found in CATEGORY_MAP. Defaulting mapping to 'professional'.`);
+          }
+          const finalCatInfo = catInfo || CATEGORY_MAP['professional'];
+
           return {
             id: c.id,
             title: c.title,
             description: c.description,
             category,
-            categoryColor: catInfo.color,
-            icon: catInfo.icon,
+            categoryColor: finalCatInfo.color,
+            icon: finalCatInfo.icon,
             isEnrollable: true,
             chapters: [],
           };
         });
+        console.log('[BrowseCoursesPage] Mapping complete. Mapped courses:', mapped);
+
+        console.log('[BrowseCoursesPage] Setting component state...');
         setCourses(mapped);
         setCategories([...new Set(mapped.map(c => c.category))]);
+        console.log('[BrowseCoursesPage] State setting complete.');
+
       } catch (e) {
-        console.error('Error in fetchCourses:', e);
+        console.error('[BrowseCoursesPage] Error caught in fetchCourses catch block:', e);
         setError('Failed to load courses. Please check console.');
         setCourses([]);
       } finally {
+        console.log('[BrowseCoursesPage] fetchCourses finally block executing. Setting loading=false.');
         setLoading(false);
       }
     };
@@ -107,11 +141,13 @@ export default function BrowseCoursesPage() {
   useEffect(() => {
     const fetchEnrolledCourses = async () => {
       if (!user || !supabase) {
-        setLoading(false);
+        // If user or supabase is not yet available, do nothing.
+        // This effect primarily updates secondary state (enrolledCourseIds).
+        // The main loading indicator is handled by fetchCourses.
         return;
       }
+      // setError(null); // setError is for courses loading, not enrolled list specifically unless it's a shared error state.
       try {
-        setError(null);
         const { data: enrollments, error: supabaseError } = await supabase
           .from('course_enrollments')
           .select('course_id')
@@ -121,8 +157,6 @@ export default function BrowseCoursesPage() {
         setEnrolledCourseIds(ids);
       } catch {
         setError('Failed to load enrolled courses.');
-      } finally {
-        setLoading(false);
       }
     };
     fetchEnrolledCourses();

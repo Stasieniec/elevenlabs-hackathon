@@ -3,8 +3,8 @@
 import React, { useState } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { Loader2, Languages, Users, Briefcase } from 'lucide-react';
-import Navigation from '../components/Navigation';
-import { useSupabase } from '../supabase-provider';
+import Navigation from '../../components/Navigation';
+import { useSupabase } from '../../supabase-provider';
 import { PostgrestError } from '@supabase/supabase-js';
 
 // Define the steps
