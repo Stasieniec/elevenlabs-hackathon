@@ -43,9 +43,8 @@ Split into two columns:
 ### 3. Course Page
 
 - Displays the **course title** and a **short description**.
-- Shows **5 lessons** as circle icons:
-  - First row: 3 lessons
-  - Second row: 2 lessons
+- Shows **lessons** as circle icons:
+  - Max 3 lessons per row
 - Clicking a lesson opens the **Coach Lesson Page**.
 - **Back button** (top-left): Returns to Welcome Screen.
 
@@ -56,7 +55,7 @@ Split into two columns:
 Divided into three sections:
 
 - **Top-left**: Animated **Coach avatar**.
-- **Bottom-left**: **Graphs and tables** for the lesson.
+- **Bottom-left**: **Graphs and tables** from case study for the lesson.
 - **Right side**: Chatbox (text and voice) with Coach.
   - Input: Text field + microphone button.
   - All chat history is **saved**.
