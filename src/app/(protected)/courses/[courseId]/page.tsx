@@ -1,6 +1,7 @@
 import { Metadata } from 'next';
-import { courses } from '@/lib/courses/index';
+import { getCourseWithLessons } from '@/lib/courses/services';
 import CourseDetailPage from './page.client';
+import { notFound } from 'next/navigation';
 
 type Props = {
   params: { courseId: string };
@@ -8,22 +9,38 @@ type Props = {
 };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const courseId = (await Promise.resolve(params)).courseId;
-  const course = courses.find(c => c.id === courseId);
-  
-  if (!course) {
+  try {
+    const { course } = await getCourseWithLessons(params.courseId);
+    
+    if (!course) {
+      return {
+        title: 'Course Not Found',
+      };
+    }
+
     return {
-      title: 'Course Not Found',
+      title: course.title,
+      description: course.description,
+    };
+  } catch (error) {
+    console.error('Error generating metadata:', error);
+    return {
+      title: 'Course Details',
     };
   }
-
-  return {
-    title: course.title,
-    description: course.description,
-  };
 }
 
 export default async function Page(props: Props) {
-  const params = await Promise.resolve(props.params);
-  return <CourseDetailPage params={params} />;
+  try {
+    const { course, lessons } = await getCourseWithLessons(props.params.courseId);
+    
+    if (!course) {
+      notFound();
+    }
+    
+    return <CourseDetailPage course={course} lessons={lessons} />;
+  } catch (error) {
+    console.error('Error loading course:', error);
+    notFound();
+  }
 } 
