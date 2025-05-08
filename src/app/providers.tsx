@@ -10,7 +10,10 @@ function EnsureSupabaseUser({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   useEffect(() => {
-    if (!user || !supabase) return;
+    if (!user || !supabase || ready) {
+      if (ready) console.log('[EnsureSupabaseUser] Already ready, skipping sync.');
+      return;
+    }
     let cancelled = false;
     let timeoutId: NodeJS.Timeout;
     const syncUser = async () => {
@@ -31,18 +34,17 @@ function EnsureSupabaseUser({ children }: { children: React.ReactNode }) {
         const { data, error: selectError } = await supabase
           .from('users')
           .select('id')
-          .eq('id', userId)
-          .single();
-        console.log('[EnsureSupabaseUser] Supabase select result:', { data, selectError });
-        if (selectError && selectError.code !== 'PGRST116') {
+          .eq('id', userId);
+        console.log('[EnsureSupabaseUser] Supabase select result (without .single()):', { data, selectError });
+        if (selectError) {
           setError('Error checking user: ' + selectError.message);
-          console.error('[EnsureSupabaseUser] Error checking user:', selectError);
+          console.error('[EnsureSupabaseUser] Error checking user (after removing .single()):', selectError);
           clearTimeout(timeoutId);
           return;
         }
-        if (!data) {
+        if (!data || data.length === 0) {
           // Insert user row
-          console.log('[EnsureSupabaseUser] User not found, inserting...');
+          console.log('[EnsureSupabaseUser] User not found (data array empty or null), inserting...');
           const { error: insertError } = await supabase.from('users').insert({
             id: userId,
             email: user.emailAddresses[0]?.emailAddress,
@@ -75,7 +77,7 @@ function EnsureSupabaseUser({ children }: { children: React.ReactNode }) {
     };
     syncUser();
     return () => { cancelled = true; clearTimeout(timeoutId); };
-  }, [user, supabase]);
+  }, [user, supabase, ready]);
   if (error) {
     return <div className="min-h-screen flex items-center justify-center text-lg text-red-600">{error}</div>;
   }

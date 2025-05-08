@@ -8,6 +8,13 @@ import { Database } from '../lib/database.types';
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
 
+// Log environment variables at the module scope to see what SupabaseProvider gets
+if (typeof window !== 'undefined') {
+  // To avoid server-side logging if this runs there, though it's client-side focused
+  console.log('[SupabaseProvider] NEXT_PUBLIC_SUPABASE_URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+  console.log('[SupabaseProvider] NEXT_PUBLIC_SUPABASE_ANON_KEY:', process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 type SupabaseContextType = {
   supabase: SupabaseClient<Database> | null;
 };
